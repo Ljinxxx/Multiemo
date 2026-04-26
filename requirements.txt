@@ -1,0 +1,7 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.2.2
+torchvision==0.17.2
+facenet-pytorch==2.5.3
+numpy==1.19.5
+scikit-learn==0.24.2
+pandas==1.0.1

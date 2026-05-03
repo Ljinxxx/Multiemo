@@ -1,229 +1,385 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
-class GatedCrossModalBlock(nn.Module):
-    """
-    [MODIFIED]
-    新的跨模态融合块。
+"""
+[MODIFIED]
+Masked MultiAttn.
 
-    原始 MultiAttn 的逻辑是：
-        main modality 作为 Query，
-        其他模态作为 Key / Value 做 cross-attention。
+Original problem:
+    The previous MultiAttn computes attention over all sequence positions,
+    including padded utterances.
 
-    这里的修改是：
-        1. 仍然保留 cross-attention；
-        2. 额外加入 gate 门控；
-        3. 让模型自动学习“应该从辅助模态吸收多少信息”。
-    """
+Modification:
+    Add attention_mask to every cross-attention layer.
 
-    def __init__(self, model_dim, num_heads, hidden_dim, dropout_rate):
+attention_mask:
+    shape: [batch_size, seq_len]
+    value: 1 means valid utterance
+    value: 0 means padding utterance
+"""
+
+
+class BidirectionalCrossAttention(nn.Module):
+    def __init__(self, model_dim, Q_dim, K_dim, V_dim):
         super().__init__()
 
+        self.query_matrix = nn.Linear(model_dim, Q_dim)
+        self.key_matrix = nn.Linear(model_dim, K_dim)
+        self.value_matrix = nn.Linear(model_dim, V_dim)
+
+    def bidirectional_scaled_dot_product_attention(
+        self,
+        Q,
+        K,
+        V,
+        attention_mask=None
+    ):
+        """
+        Q: [batch_size, seq_len, Q_dim]
+        K: [batch_size, seq_len, K_dim]
+        V: [batch_size, seq_len, V_dim]
+
+        attention_mask:
+            [batch_size, seq_len]
+            1 = valid utterance
+            0 = padding utterance
+        """
+
+        score = torch.bmm(Q, K.transpose(-1, -2))
+        scaled_score = score / (K.shape[-1] ** 0.5)
+
+        # ============================================================
         # [MODIFIED-1]
-        # 使用 PyTorch 原生多头注意力，输入格式为 [batch, seq_len, dim]
-        self.cross_attn_1 = nn.MultiheadAttention(
-            embed_dim=model_dim,
-            num_heads=num_heads,
-            dropout=dropout_rate,
-            batch_first=True
-        )
+        # Mask padded key/value positions before softmax.
+        #
+        # scaled_score shape:
+        #     [batch_size, query_len, key_len]
+        #
+        # attention_mask shape:
+        #     [batch_size, key_len]
+        #
+        # invalid positions are filled with a very negative value,
+        # so softmax gives them probability close to 0.
+        # ============================================================
+        if attention_mask is not None:
+            key_padding_mask = ~attention_mask.bool()
+            scaled_score = scaled_score.masked_fill(
+                key_padding_mask.unsqueeze(1),
+                -1e9
+            )
 
-        self.cross_attn_2 = nn.MultiheadAttention(
-            embed_dim=model_dim,
-            num_heads=num_heads,
-            dropout=dropout_rate,
-            batch_first=True
-        )
+        attention_weights = F.softmax(scaled_score, dim=-1)
 
+        attention = torch.bmm(attention_weights, V)
+
+        # ============================================================
         # [MODIFIED-2]
-        # 第一次跨模态融合的门控：
-        # 输入 main 和 attn_out 的拼接，输出每个维度的 gate
-        self.gate_1 = nn.Sequential(
-            nn.Linear(model_dim * 2, model_dim),
-            nn.Sigmoid()
+        # Also zero out padded query positions.
+        # This prevents padded utterances from producing non-zero outputs.
+        # ============================================================
+        if attention_mask is not None:
+            attention = attention * attention_mask.unsqueeze(-1).float()
+
+        return attention
+
+    def forward(self, query, key, value, attention_mask=None):
+        Q = self.query_matrix(query)
+        K = self.key_matrix(key)
+        V = self.value_matrix(value)
+
+        attention = self.bidirectional_scaled_dot_product_attention(
+            Q,
+            K,
+            V,
+            attention_mask=attention_mask
         )
 
-        # [MODIFIED-3]
-        # 第二次跨模态融合的门控
-        self.gate_2 = nn.Sequential(
-            nn.Linear(model_dim * 2, model_dim),
-            nn.Sigmoid()
+        return attention
+
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, num_heads, model_dim, Q_dim, K_dim, V_dim):
+        super().__init__()
+
+        self.num_heads = num_heads
+
+        self.attention_heads = nn.ModuleList(
+            [
+                BidirectionalCrossAttention(
+                    model_dim,
+                    Q_dim,
+                    K_dim,
+                    V_dim
+                )
+                for _ in range(self.num_heads)
+            ]
         )
 
-        self.norm_1 = nn.LayerNorm(model_dim)
-        self.norm_2 = nn.LayerNorm(model_dim)
-        self.norm_3 = nn.LayerNorm(model_dim)
+        self.projection_matrix = nn.Linear(num_heads * V_dim, model_dim)
 
+    def forward(self, query, key, value, attention_mask=None):
+        heads = [
+            self.attention_heads[i](
+                query,
+                key,
+                value,
+                attention_mask=attention_mask
+            )
+            for i in range(self.num_heads)
+        ]
+
+        multihead_attention = self.projection_matrix(
+            torch.cat(heads, dim=-1)
+        )
+
+        if attention_mask is not None:
+            multihead_attention = (
+                multihead_attention
+                * attention_mask.unsqueeze(-1).float()
+            )
+
+        return multihead_attention
+
+
+class Feedforward(nn.Module):
+    def __init__(self, model_dim, hidden_dim, dropout_rate):
+        super().__init__()
+
+        self.linear_W1 = nn.Linear(model_dim, hidden_dim)
+        self.linear_W2 = nn.Linear(hidden_dim, model_dim)
+        self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout_rate)
 
-        # [MODIFIED-4]
-        # FFN 保留 Transformer 风格结构
-        self.ffn = nn.Sequential(
-            nn.Linear(model_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim, model_dim)
+    def forward(self, x):
+        return self.dropout(
+            self.linear_W2(
+                self.relu(
+                    self.linear_W1(x)
+                )
+            )
         )
 
-    def forward(self, main_modality, modality_A, modality_B):
+
+class AddNorm(nn.Module):
+    def __init__(self, model_dim, dropout_rate):
+        super().__init__()
+
+        self.layer_norm = nn.LayerNorm(model_dim)
+        self.dropout = nn.Dropout(dropout_rate)
+
+    def forward(self, x, sublayer_output, attention_mask=None):
         """
-        main_modality: [batch, seq_len, model_dim]
-        modality_A:    [batch, seq_len, model_dim]
-        modality_B:    [batch, seq_len, model_dim]
-
-        返回：
-            fused_main: [batch, seq_len, model_dim]
+        x:              [batch_size, seq_len, model_dim]
+        sublayer_output:[batch_size, seq_len, model_dim]
+        attention_mask: [batch_size, seq_len]
         """
 
-        # ================================
-        # [MODIFIED] 第一阶段：main attend to modality_A
-        # ================================
-        attn_out_1, _ = self.cross_attn_1(
-            query=main_modality,
-            key=modality_A,
-            value=modality_A,
-            need_weights=False
+        output = self.layer_norm(
+            x + self.dropout(sublayer_output)
         )
 
-        # [MODIFIED] gate 控制 modality_A 注入强度
-        gate_1 = self.gate_1(
-            torch.cat([main_modality, attn_out_1], dim=-1)
+        # ============================================================
+        # [MODIFIED-3]
+        # Keep padded positions zero after residual + layer norm.
+        # ============================================================
+        if attention_mask is not None:
+            output = output * attention_mask.unsqueeze(-1).float()
+
+        return output
+
+
+class MultiAttnLayer(nn.Module):
+    def __init__(self, num_heads, model_dim, hidden_dim, dropout_rate):
+        super().__init__()
+
+        Q_dim = K_dim = V_dim = model_dim // num_heads
+
+        self.attn_1 = MultiHeadAttention(
+            num_heads,
+            model_dim,
+            Q_dim,
+            K_dim,
+            V_dim
+        )
+        self.add_norm_1 = AddNorm(model_dim, dropout_rate)
+
+        self.attn_2 = MultiHeadAttention(
+            num_heads,
+            model_dim,
+            Q_dim,
+            K_dim,
+            V_dim
+        )
+        self.add_norm_2 = AddNorm(model_dim, dropout_rate)
+
+        self.ff = Feedforward(model_dim, hidden_dim, dropout_rate)
+        self.add_norm_3 = AddNorm(model_dim, dropout_rate)
+
+    def forward(
+        self,
+        query_modality,
+        modality_A,
+        modality_B,
+        attention_mask=None
+    ):
+        """
+        query_modality: [batch_size, seq_len, model_dim]
+        modality_A:     [batch_size, seq_len, model_dim]
+        modality_B:     [batch_size, seq_len, model_dim]
+        attention_mask:  [batch_size, seq_len]
+        """
+
+        # query_modality attends to modality_A
+        attn_1_output = self.attn_1(
+            query_modality,
+            modality_A,
+            modality_A,
+            attention_mask=attention_mask
         )
 
-        # [MODIFIED] 门控残差
-        x = self.norm_1(
-            main_modality + self.dropout(gate_1 * attn_out_1)
+        attn_output_1 = self.add_norm_1(
+            query_modality,
+            attn_1_output,
+            attention_mask=attention_mask
         )
 
-        # ================================
-        # [MODIFIED] 第二阶段：上一步结果 attend to modality_B
-        # ================================
-        attn_out_2, _ = self.cross_attn_2(
-            query=x,
-            key=modality_B,
-            value=modality_B,
-            need_weights=False
+        # previous output attends to modality_B
+        attn_2_output = self.attn_2(
+            attn_output_1,
+            modality_B,
+            modality_B,
+            attention_mask=attention_mask
         )
 
-        gate_2 = self.gate_2(
-            torch.cat([x, attn_out_2], dim=-1)
+        attn_output_2 = self.add_norm_2(
+            attn_output_1,
+            attn_2_output,
+            attention_mask=attention_mask
         )
 
-        x = self.norm_2(
-            x + self.dropout(gate_2 * attn_out_2)
+        # feed-forward
+        ff_output = self.ff(attn_output_2)
+
+        output = self.add_norm_3(
+            attn_output_2,
+            ff_output,
+            attention_mask=attention_mask
         )
 
-        # ================================
-        # FFN
-        # ================================
-        ffn_out = self.ffn(x)
-
-        x = self.norm_3(
-            x + self.dropout(ffn_out)
-        )
-
-        return x
+        return output
 
 
 class MultiAttn(nn.Module):
-    """
-    [MODIFIED]
-    堆叠多个 GatedCrossModalBlock。
-
-    保留原始 MultiAttn 的调用方式：
-        query_modality, modality_A, modality_B -> fused query_modality
-    """
-
-    def __init__(self, num_layers, model_dim, num_heads, hidden_dim, dropout_rate):
+    def __init__(
+        self,
+        num_layers,
+        model_dim,
+        num_heads,
+        hidden_dim,
+        dropout_rate
+    ):
         super().__init__()
 
-        self.layers = nn.ModuleList([
-            GatedCrossModalBlock(
-                model_dim=model_dim,
-                num_heads=num_heads,
-                hidden_dim=hidden_dim,
-                dropout_rate=dropout_rate
-            )
-            for _ in range(num_layers)
-        ])
+        self.multiattn_layers = nn.ModuleList(
+            [
+                MultiAttnLayer(
+                    num_heads,
+                    model_dim,
+                    hidden_dim,
+                    dropout_rate
+                )
+                for _ in range(num_layers)
+            ]
+        )
 
-    def forward(self, query_modality, modality_A, modality_B):
-        for layer in self.layers:
-            query_modality = layer(query_modality, modality_A, modality_B)
+    def forward(
+        self,
+        query_modality,
+        modality_A,
+        modality_B,
+        attention_mask=None
+    ):
+        for multiattn_layer in self.multiattn_layers:
+            query_modality = multiattn_layer(
+                query_modality,
+                modality_A,
+                modality_B,
+                attention_mask=attention_mask
+            )
 
         return query_modality
 
 
 class MultiAttnModel(nn.Module):
-    """
-    [IMPORTANT]
-    这个类名不要改。
-
-    因为 Model/MultiEMO_Model.py 里面导入的是：
-        from MultiAttn import MultiAttnModel
-
-    所以我们保留 MultiAttnModel 的类名和接口。
-    """
-
-    def __init__(self, num_layers, model_dim, num_heads, hidden_dim, dropout_rate):
+    def __init__(
+        self,
+        num_layers,
+        model_dim,
+        num_heads,
+        hidden_dim,
+        dropout_rate
+    ):
         super().__init__()
 
-        # [MODIFIED]
-        # 文本分支：text 作为主模态，融合 audio 和 visual
         self.multiattn_text = MultiAttn(
-            num_layers=num_layers,
-            model_dim=model_dim,
-            num_heads=num_heads,
-            hidden_dim=hidden_dim,
-            dropout_rate=dropout_rate
+            num_layers,
+            model_dim,
+            num_heads,
+            hidden_dim,
+            dropout_rate
         )
 
-        # [MODIFIED]
-        # 音频分支：audio 作为主模态，融合 text 和 visual
         self.multiattn_audio = MultiAttn(
-            num_layers=num_layers,
-            model_dim=model_dim,
-            num_heads=num_heads,
-            hidden_dim=hidden_dim,
-            dropout_rate=dropout_rate
+            num_layers,
+            model_dim,
+            num_heads,
+            hidden_dim,
+            dropout_rate
         )
 
-        # [MODIFIED]
-        # 视觉分支：visual 作为主模态，融合 text 和 audio
         self.multiattn_visual = MultiAttn(
-            num_layers=num_layers,
-            model_dim=model_dim,
-            num_heads=num_heads,
-            hidden_dim=hidden_dim,
-            dropout_rate=dropout_rate
+            num_layers,
+            model_dim,
+            num_heads,
+            hidden_dim,
+            dropout_rate
         )
 
-    def forward(self, text_features, audio_features, visual_features):
+    def forward(
+        self,
+        text_features,
+        audio_features,
+        visual_features,
+        attention_mask=None
+    ):
         """
-        text_features:   [batch, seq_len, model_dim]
-        audio_features:  [batch, seq_len, model_dim]
-        visual_features: [batch, seq_len, model_dim]
+        text_features:   [batch_size, seq_len, model_dim]
+        audio_features:  [batch_size, seq_len, model_dim]
+        visual_features: [batch_size, seq_len, model_dim]
+        attention_mask:  [batch_size, seq_len]
         """
 
-        # [MODIFIED]
-        # 三个模态分别作为主模态进行融合
         f_t = self.multiattn_text(
             text_features,
             audio_features,
-            visual_features
+            visual_features,
+            attention_mask=attention_mask
         )
 
         f_a = self.multiattn_audio(
             audio_features,
             text_features,
-            visual_features
+            visual_features,
+            attention_mask=attention_mask
         )
 
         f_v = self.multiattn_visual(
             visual_features,
             text_features,
-            audio_features
+            audio_features,
+            attention_mask=attention_mask
         )
 
         return f_t, f_a, f_v

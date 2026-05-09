@@ -6,6 +6,26 @@ import torch
 import torch.nn as nn
 
 
+'''
+MultiEMO consists of three key components:
+unimodal context modeling, multimodal fusion, and emotion classification.
+
+[MODIFIED]
+Residual MultiAttn Skip version:
+
+Original classifier input:
+    fused_text + fused_audio + fused_visual
+
+Modified classifier input:
+    raw_text + raw_audio + raw_visual
+    +
+    fused_text + fused_audio + fused_visual
+
+Purpose:
+    Preserve original unimodal contextual features after MultiAttn fusion.
+'''
+
+
 class MultiEMO(nn.Module):
     def __init__(
         self,
@@ -36,7 +56,9 @@ class MultiEMO(nn.Module):
         self.dataset = dataset
         self.multi_attn_flag = multi_attn_flag
 
-        # Text modality
+        # ==============================
+        # Unimodal feature projection
+        # ==============================
         self.text_fc = nn.Linear(roberta_dim, model_dim)
 
         self.text_dialoguernn = BiModel(
@@ -56,7 +78,6 @@ class MultiEMO(nn.Module):
             device
         )
 
-        # Audio modality
         self.audio_fc = nn.Linear(D_m_audio, model_dim)
 
         self.audio_dialoguernn = BiModel(
@@ -76,7 +97,6 @@ class MultiEMO(nn.Module):
             device
         )
 
-        # Visual modality
         self.visual_fc = nn.Linear(D_m_visual, model_dim)
 
         self.visual_dialoguernn = BiModel(
@@ -96,7 +116,9 @@ class MultiEMO(nn.Module):
             device
         )
 
-        # MultiAttn fusion
+        # ==============================
+        # MultiAttn fusion module
+        # ==============================
         self.multiattn = MultiAttnModel(
             num_layers,
             model_dim,
@@ -105,19 +127,23 @@ class MultiEMO(nn.Module):
             dropout
         )
 
-        # Dataset-specific classifier input dimension
-        if self.dataset == 'IEMOCAP':
-            # IEMOCAP uses residual skip: raw + fused
-            self.fc = nn.Linear(model_dim * 6, model_dim)
+        # ============================================================
+        # [MODIFIED-1]
+        # 原始版本：
+        #     self.fc = nn.Linear(model_dim * 3, model_dim)
+        #
+        # 因为原来只拼接：
+        #     fused_text + fused_audio + fused_visual
+        #
+        # 现在拼接：
+        #     raw_text + raw_audio + raw_visual
+        #     +
+        #     fused_text + fused_audio + fused_visual
+        #
+        # 所以输入维度从 3 * model_dim 变成 6 * model_dim。
+        # ============================================================
+        self.fc = nn.Linear(model_dim * 6, model_dim)
 
-        elif self.dataset == 'MELD':
-            # MELD uses fused-only
-            self.fc = nn.Linear(model_dim * 3, model_dim)
-
-        else:
-            raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
-
-        # Main classifier
         if self.dataset == 'MELD':
             self.mlp = MLP(
                 model_dim,
@@ -134,28 +160,6 @@ class MultiEMO(nn.Module):
                 dropout
             )
 
-        # Auxiliary unimodal classifiers
-        self.text_aux_classifier = MLP(
-            model_dim,
-            model_dim,
-            n_classes,
-            dropout
-        )
-
-        self.audio_aux_classifier = MLP(
-            model_dim,
-            model_dim,
-            n_classes,
-            dropout
-        )
-
-        self.visual_aux_classifier = MLP(
-            model_dim,
-            model_dim,
-            n_classes,
-            dropout
-        )
-
     def forward(
         self,
         texts,
@@ -165,11 +169,12 @@ class MultiEMO(nn.Module):
         utterance_masks,
         padded_labels
     ):
+        # ==============================
         # Text modality
+        # ==============================
         text_features = self.text_fc(texts)
 
-        # Keep original MultiEMO behavior:
-        # IEMOCAP uses text DialogueRNN.
+        # IEMOCAP uses additional textual context modeling.
         if self.dataset == 'IEMOCAP':
             text_features = self.text_dialoguernn(
                 text_features,
@@ -177,59 +182,70 @@ class MultiEMO(nn.Module):
                 utterance_masks
             )
 
+        # ==============================
         # Audio modality
+        # ==============================
         audio_features = self.audio_fc(audios)
-
         audio_features = self.audio_dialoguernn(
             audio_features,
             speaker_masks,
             utterance_masks
         )
 
+        # ==============================
         # Visual modality
+        # ==============================
         visual_features = self.visual_fc(visuals)
-
         visual_features = self.visual_dialoguernn(
             visual_features,
             speaker_masks,
             utterance_masks
         )
 
-        # [seq_len, batch_size, dim] -> [batch_size, seq_len, dim]
+        # DialogueRNN output shape:
+        #     [seq_len, batch_size, model_dim]
+        #
+        # MultiAttn input shape:
+        #     [batch_size, seq_len, model_dim]
         text_features = text_features.transpose(0, 1)
         audio_features = audio_features.transpose(0, 1)
         visual_features = visual_features.transpose(0, 1)
 
-        # Save unimodal contextual features before MultiAttn
+        # ============================================================
+        # [MODIFIED-2]
+        # 在进入 MultiAttn 之前，保存原始单模态上下文特征。
+        #
+        # 这些 raw features 不是最初的 raw input，
+        # 而是经过 fc 投影和 DialogueRNN 上下文建模后的单模态特征。
+        # ============================================================
         raw_text_features = text_features
         raw_audio_features = audio_features
         raw_visual_features = visual_features
 
-        # Dataset-specific attention mask
+        # ==============================
+        # MultiAttn fusion
+        # ==============================
         if self.multi_attn_flag == True:
-            if self.dataset == 'IEMOCAP':
-                attention_mask = utterance_masks.bool()
-
-            elif self.dataset == 'MELD':
-                # MELD does not pass attention mask.
-                attention_mask = None
-
-            else:
-                raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
-
             fused_text_features, fused_audio_features, fused_visual_features = self.multiattn(
                 text_features,
                 audio_features,
-                visual_features,
-                attention_mask=attention_mask
+                visual_features
             )
-
         else:
             fused_text_features = text_features
             fused_audio_features = audio_features
             fused_visual_features = visual_features
 
-        # Flatten and remove padded utterances
+        # ============================================================
+        # Flatten and remove padding utterances.
+        #
+        # 这里沿用你原代码的逻辑：
+        #     padded_labels != -1 表示有效话语
+        # ============================================================
+
+        # ------------------------------
+        # Raw unimodal features
+        # ------------------------------
         raw_text_features = raw_text_features.reshape(
             -1,
             raw_text_features.shape[-1]
@@ -248,6 +264,9 @@ class MultiEMO(nn.Module):
         )
         raw_visual_features = raw_visual_features[padded_labels != -1]
 
+        # ------------------------------
+        # MultiAttn fused features
+        # ------------------------------
         fused_text_features = fused_text_features.reshape(
             -1,
             fused_text_features.shape[-1]
@@ -266,50 +285,53 @@ class MultiEMO(nn.Module):
         )
         fused_visual_features = fused_visual_features[padded_labels != -1]
 
-        # Auxiliary logits
-        text_aux_outputs = self.text_aux_classifier(raw_text_features)
-        audio_aux_outputs = self.audio_aux_classifier(raw_audio_features)
-        visual_aux_outputs = self.visual_aux_classifier(raw_visual_features)
+        # ============================================================
+        # [MODIFIED-3]
+        # 原始版本：
+        #     fused_features = torch.cat(
+        #         (fused_text_features,
+        #          fused_audio_features,
+        #          fused_visual_features),
+        #         dim=-1
+        #     )
+        #
+        # 修改后：
+        #     把 MultiAttn 前后的特征都送入分类器。
+        #
+        # 这样分类器可以同时利用：
+        #     1. 原始单模态上下文信息
+        #     2. 融合后的跨模态信息
+        # ============================================================
+        fused_features = torch.cat(
+            (
+                raw_text_features,
+                raw_audio_features,
+                raw_visual_features,
+                fused_text_features,
+                fused_audio_features,
+                fused_visual_features
+            ),
+            dim=-1
+        )
 
-        # Dataset-specific fusion
-        if self.dataset == 'IEMOCAP':
-            # IEMOCAP uses residual skip: raw + fused
-            fused_features = torch.cat(
-                (
-                    raw_text_features,
-                    raw_audio_features,
-                    raw_visual_features,
-                    fused_text_features,
-                    fused_audio_features,
-                    fused_visual_features
-                ),
-                dim=-1
-            )
-
-        elif self.dataset == 'MELD':
-            # MELD uses fused-only
-            fused_features = torch.cat(
-                (
-                    fused_text_features,
-                    fused_audio_features,
-                    fused_visual_features
-                ),
-                dim=-1
-            )
-
-        else:
-            raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
-
+        # ==============================
+        # Classification
+        # ==============================
         fc_outputs = self.fc(fused_features)
         mlp_outputs = self.mlp(fc_outputs)
 
+        # ============================================================
+        # 返回值保持和原始代码完全一致。
+        #
+        # 所以 Train/TrainMultiEMO.py 不用改：
+        #     HGR loss 仍然使用 fused_text/audio/visual
+        #     SWFC loss 仍然使用 fc_outputs
+        #     CE loss 仍然使用 mlp_outputs
+        # ============================================================
         return (
             fused_text_features,
             fused_audio_features,
             fused_visual_features,
             fc_outputs,
-            mlp_outputs,
-            text_aux_outputs,
-            audio_aux_outputs,
-            visual_aux_outputs
+            mlp_outputs
         )

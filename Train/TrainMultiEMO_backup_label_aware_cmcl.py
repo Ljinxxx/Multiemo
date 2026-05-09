@@ -25,19 +25,42 @@ import random
 
 class CrossModalContrastiveLoss(nn.Module):
     """
-    Ordinary three-pair Cross-modal Contrastive Loss.
+    [MODIFIED]
+    MELD-only Cross-modal Contrastive Loss.
+
+    Purpose:
+        Align text/audio/visual representations of the same utterance.
 
     Positive pairs:
         text_i  <-> audio_i
         text_i  <-> visual_i
         audio_i <-> visual_i
+
+    Negative pairs:
+        text_i  <-> audio_j, visual_j, where i != j
+        audio_i <-> visual_j, where i != j
+
+    This loss is different from SWFC:
+        - SWFC works on final fc_outputs and label-level contrast.
+        - CMCL works across modalities and utterance-level alignment.
     """
 
-    def __init__(self, temperature=0.5):
+    def __init__(self, temperature=0.2):
         super().__init__()
         self.temperature = temperature
 
     def pair_contrastive_loss(self, x, y):
+        """
+        x: [N, D]
+        y: [N, D]
+
+        Positive pair:
+            x[i] and y[i]
+
+        Negatives:
+            x[i] and y[j], j != i
+        """
+
         if x.size(0) <= 1:
             return x.new_tensor(0.0)
 
@@ -52,12 +75,7 @@ class CrossModalContrastiveLoss(nn.Module):
 
         return (loss_xy + loss_yx) / 2.0
 
-    def forward(
-        self,
-        text_features,
-        audio_features,
-        visual_features
-    ):
+    def forward(self, text_features, audio_features, visual_features):
         loss_ta = self.pair_contrastive_loss(
             text_features,
             audio_features
@@ -122,8 +140,13 @@ class TrainMultiEMO():
         self.CE_loss_param = CE_loss_param
         self.aux_loss_param = aux_loss_param
 
+        # [MODIFIED]
+        # MELD-only cross-modal contrastive loss.
         self.cmcl_loss_param = cmcl_loss_param
         self.cmcl_temp_param = cmcl_temp_param
+
+        # [MODIFIED]
+        # MELD-only label smoothing.
         self.meld_label_smoothing = meld_label_smoothing
 
         self.multi_attn_flag = multi_attn_flag
@@ -269,6 +292,17 @@ class TrainMultiEMO():
 
         self.HGR_loss = SoftHGRLoss()
 
+        # ============================================================
+        # Dataset-specific CE.
+        #
+        # IEMOCAP:
+        #   normal CE, keep current strong result.
+        #
+        # MELD:
+        #   label smoothing CE.
+        #   This is kept because your previous best MELD version
+        #   with label smoothing reached about 66.09.
+        # ============================================================
         if self.dataset == 'MELD':
             self.CE_loss = nn.CrossEntropyLoss(
                 label_smoothing=self.meld_label_smoothing
@@ -280,6 +314,16 @@ class TrainMultiEMO():
         else:
             raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
 
+        # ============================================================
+        # [MODIFIED]
+        # Cross-modal contrastive loss only for MELD.
+        #
+        # IEMOCAP:
+        #   disabled to avoid affecting current 72.91 result.
+        #
+        # MELD:
+        #   used to align text/audio/visual representations.
+        # ============================================================
         if self.dataset == 'MELD':
             self.CMCL_loss = CrossModalContrastiveLoss(
                 temperature=self.cmcl_temp_param
@@ -317,6 +361,9 @@ class TrainMultiEMO():
         total_HGR_loss = 0.0
         total_CE_loss = 0.0
         total_AUX_loss = 0.0
+
+        # [MODIFIED]
+        # Record CMCL loss.
         total_CMCL_loss = 0.0
 
         all_labels = []
@@ -367,6 +414,15 @@ class TrainMultiEMO():
                 labels
             )
 
+            # ========================================================
+            # Dataset-specific AUX loss.
+            #
+            # IEMOCAP:
+            #   use auxiliary unimodal supervision.
+            #
+            # MELD:
+            #   disable AUX loss.
+            # ========================================================
             if self.dataset == 'IEMOCAP':
                 text_CE_loss = self.CE_loss(
                     text_aux_outputs,
@@ -395,6 +451,16 @@ class TrainMultiEMO():
             else:
                 raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
 
+            # ========================================================
+            # [MODIFIED]
+            # MELD-only Cross-modal Contrastive Loss.
+            #
+            # IEMOCAP:
+            #   CMCL_loss = 0
+            #
+            # MELD:
+            #   align fused_text/audio/visual representations.
+            # ========================================================
             if self.dataset == 'MELD':
                 CMCL_loss = self.CMCL_loss(
                     fused_text_features,
@@ -553,9 +619,7 @@ class TrainMultiEMO():
                 )
             )
 
-            # Large-scale experiments produce very large logs.
-            # The best report will still be printed at the end.
-            # print(test_report)
+            print(test_report)
 
             self.scheduler.step(valid_loss)
 
@@ -720,20 +784,25 @@ def get_args():
         help='coefficient of auxiliary unimodal CE loss'
     )
 
+    # ================================================================
+    # [MODIFIED]
+    # MELD-only Cross-modal Contrastive Loss coefficient.
+    # Set to 0 to disable.
+    # ================================================================
     parser.add_option(
         '--cmcl_loss_param',
         dest='cmcl_loss_param',
         default=0.0,
         type='float',
-        help='coefficient of MELD-only ordinary CMCL'
+        help='coefficient of MELD-only cross-modal contrastive loss'
     )
 
     parser.add_option(
         '--cmcl_temp_param',
         dest='cmcl_temp_param',
-        default=0.5,
+        default=0.2,
         type='float',
-        help='temperature of MELD-only ordinary CMCL'
+        help='temperature of MELD-only cross-modal contrastive loss'
     )
 
     parser.add_option(
@@ -749,14 +818,6 @@ def get_args():
         dest='multi_attn_flag',
         default=True,
         help='Multimodal fusion'
-    )
-
-    parser.add_option(
-        '--seed',
-        dest='seed',
-        default=2023,
-        type='int',
-        help='random seed'
     )
 
     (options, _) = parser.parse_args()
@@ -796,16 +857,19 @@ if __name__ == '__main__':
     HGR_loss_param = args.HGR_loss_param
     CE_loss_param = args.CE_loss_param
     aux_loss_param = args.aux_loss_param
+
+    # [MODIFIED]
     cmcl_loss_param = args.cmcl_loss_param
     cmcl_temp_param = args.cmcl_temp_param
     meld_label_smoothing = args.meld_label_smoothing
+
     multi_attn_flag = args.multi_attn_flag
-    seed = args.seed
 
     device = torch.device(
         'cuda' if torch.cuda.is_available() else 'cpu'
     )
 
+    seed = 2023
     set_seed(seed)
 
     multiemo_train = TrainMultiEMO(

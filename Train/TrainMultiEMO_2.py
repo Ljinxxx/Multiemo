@@ -11,7 +11,6 @@ from MultiEMO_Model import MultiEMO
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from optparse import OptionParser
 import torch.optim as optim
@@ -21,59 +20,6 @@ import warnings
 warnings.filterwarnings('ignore')
 from torch.utils.data.sampler import SubsetRandomSampler
 import random
-
-
-class CrossModalContrastiveLoss(nn.Module):
-    """
-    Ordinary three-pair Cross-modal Contrastive Loss.
-
-    Positive pairs:
-        text_i  <-> audio_i
-        text_i  <-> visual_i
-        audio_i <-> visual_i
-    """
-
-    def __init__(self, temperature=0.5):
-        super().__init__()
-        self.temperature = temperature
-
-    def pair_contrastive_loss(self, x, y):
-        if x.size(0) <= 1:
-            return x.new_tensor(0.0)
-
-        x = F.normalize(x, dim=-1)
-        y = F.normalize(y, dim=-1)
-
-        logits = torch.matmul(x, y.t()) / self.temperature
-        targets = torch.arange(x.size(0), device=x.device)
-
-        loss_xy = F.cross_entropy(logits, targets)
-        loss_yx = F.cross_entropy(logits.t(), targets)
-
-        return (loss_xy + loss_yx) / 2.0
-
-    def forward(
-        self,
-        text_features,
-        audio_features,
-        visual_features
-    ):
-        loss_ta = self.pair_contrastive_loss(
-            text_features,
-            audio_features
-        )
-
-        loss_tv = self.pair_contrastive_loss(
-            text_features,
-            visual_features
-        )
-
-        loss_av = self.pair_contrastive_loss(
-            audio_features,
-            visual_features
-        )
-
-        return (loss_ta + loss_tv + loss_av) / 3.0
 
 
 class TrainMultiEMO():
@@ -97,9 +43,6 @@ class TrainMultiEMO():
         HGR_loss_param,
         CE_loss_param,
         aux_loss_param,
-        cmcl_loss_param,
-        cmcl_temp_param,
-        meld_label_smoothing,
         multi_attn_flag,
         device
     ):
@@ -120,11 +63,10 @@ class TrainMultiEMO():
         self.SWFC_loss_param = SWFC_loss_param
         self.HGR_loss_param = HGR_loss_param
         self.CE_loss_param = CE_loss_param
-        self.aux_loss_param = aux_loss_param
 
-        self.cmcl_loss_param = cmcl_loss_param
-        self.cmcl_temp_param = cmcl_temp_param
-        self.meld_label_smoothing = meld_label_smoothing
+        # [MODIFIED]
+        # Auxiliary unimodal CE loss coefficient.
+        self.aux_loss_param = aux_loss_param
 
         self.multi_attn_flag = multi_attn_flag
         self.device = device
@@ -268,28 +210,7 @@ class TrainMultiEMO():
         )
 
         self.HGR_loss = SoftHGRLoss()
-
-        if self.dataset == 'MELD':
-            self.CE_loss = nn.CrossEntropyLoss(
-                label_smoothing=self.meld_label_smoothing
-            )
-
-        elif self.dataset == 'IEMOCAP':
-            self.CE_loss = nn.CrossEntropyLoss()
-
-        else:
-            raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
-
-        if self.dataset == 'MELD':
-            self.CMCL_loss = CrossModalContrastiveLoss(
-                temperature=self.cmcl_temp_param
-            ).to(self.device)
-
-        elif self.dataset == 'IEMOCAP':
-            self.CMCL_loss = None
-
-        else:
-            raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
+        self.CE_loss = nn.CrossEntropyLoss()
 
     def get_optimizer(self):
         self.optimizer = optim.Adam(
@@ -316,8 +237,10 @@ class TrainMultiEMO():
         total_SWFC_loss = 0.0
         total_HGR_loss = 0.0
         total_CE_loss = 0.0
+
+        # [MODIFIED]
+        # Record auxiliary unimodal CE loss.
         total_AUX_loss = 0.0
-        total_CMCL_loss = 0.0
 
         all_labels = []
         all_preds = []
@@ -333,6 +256,10 @@ class TrainMultiEMO():
             padded_labels = padded_labels.reshape(-1)
             labels = padded_labels[padded_labels != -1]
 
+            # ========================================================
+            # [MODIFIED]
+            # Model now returns auxiliary logits.
+            # ========================================================
             (
                 fused_text_features,
                 fused_audio_features,
@@ -367,53 +294,41 @@ class TrainMultiEMO():
                 labels
             )
 
-            if self.dataset == 'IEMOCAP':
-                text_CE_loss = self.CE_loss(
-                    text_aux_outputs,
-                    labels
-                )
+            # ========================================================
+            # [MODIFIED]
+            # Auxiliary unimodal classification loss.
+            #
+            # text/audio/visual features are separately supervised.
+            # ========================================================
+            text_CE_loss = self.CE_loss(
+                text_aux_outputs,
+                labels
+            )
 
-                audio_CE_loss = self.CE_loss(
-                    audio_aux_outputs,
-                    labels
-                )
+            audio_CE_loss = self.CE_loss(
+                audio_aux_outputs,
+                labels
+            )
 
-                visual_CE_loss = self.CE_loss(
-                    visual_aux_outputs,
-                    labels
-                )
+            visual_CE_loss = self.CE_loss(
+                visual_aux_outputs,
+                labels
+            )
 
-                AUX_loss = (
-                    text_CE_loss
-                    + audio_CE_loss
-                    + visual_CE_loss
-                ) / 3.0
+            AUX_loss = (
+                text_CE_loss
+                + audio_CE_loss
+                + visual_CE_loss
+            ) / 3.0
 
-            elif self.dataset == 'MELD':
-                AUX_loss = mlp_outputs.new_tensor(0.0)
-
-            else:
-                raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
-
-            if self.dataset == 'MELD':
-                CMCL_loss = self.CMCL_loss(
-                    fused_text_features,
-                    fused_audio_features,
-                    fused_visual_features
-                )
-
-            elif self.dataset == 'IEMOCAP':
-                CMCL_loss = mlp_outputs.new_tensor(0.0)
-
-            else:
-                raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
-
+            # ========================================================
+            # Total loss
+            # ========================================================
             loss = (
                 soft_HGR_loss * self.HGR_loss_param
                 + SWFC_loss * self.SWFC_loss_param
                 + CE_loss * self.CE_loss_param
                 + AUX_loss * self.aux_loss_param
-                + CMCL_loss * self.cmcl_loss_param
             )
 
             total_loss += loss.item()
@@ -421,7 +336,6 @@ class TrainMultiEMO():
             total_SWFC_loss += SWFC_loss.item()
             total_CE_loss += CE_loss.item()
             total_AUX_loss += AUX_loss.item()
-            total_CMCL_loss += CMCL_loss.item()
 
             if train:
                 loss.backward()
@@ -457,7 +371,6 @@ class TrainMultiEMO():
             round(total_SWFC_loss, 4),
             round(total_CE_loss, 4),
             round(total_AUX_loss, 4),
-            round(total_CMCL_loss, 4),
             avg_f1,
             avg_acc,
             report
@@ -471,7 +384,6 @@ class TrainMultiEMO():
                 train_SWFC_loss,
                 train_CE_loss,
                 train_AUX_loss,
-                train_CMCL_loss,
                 train_f1,
                 train_acc,
                 _
@@ -487,7 +399,6 @@ class TrainMultiEMO():
                     valid_SWFC_loss,
                     valid_CE_loss,
                     valid_AUX_loss,
-                    valid_CMCL_loss,
                     valid_f1,
                     valid_acc,
                     _
@@ -502,7 +413,6 @@ class TrainMultiEMO():
                     test_SWFC_loss,
                     test_CE_loss,
                     test_AUX_loss,
-                    test_CMCL_loss,
                     test_f1,
                     test_acc,
                     test_report
@@ -512,50 +422,45 @@ class TrainMultiEMO():
                 )
 
             print(
-                'Epoch {}, train loss: {}, train HGR loss: {}, train SWFC loss: {}, train CE loss: {}, train AUX loss: {}, train CMCL loss: {}, train f1: {}, train acc: {}'.format(
+                'Epoch {}, train loss: {}, train HGR loss: {}, train SWFC loss: {}, train CE loss: {}, train AUX loss: {}, train f1: {}, train acc: {}'.format(
                     e + 1,
                     train_loss,
                     train_HGR_loss,
                     train_SWFC_loss,
                     train_CE_loss,
                     train_AUX_loss,
-                    train_CMCL_loss,
                     train_f1,
                     train_acc
                 )
             )
 
             print(
-                'Epoch {}, valid loss: {}, valid HGR loss: {}, valid SWFC loss: {}, valid CE loss: {}, valid AUX loss: {}, valid CMCL loss: {}, valid f1: {}, valid acc: {}'.format(
+                'Epoch {}, valid loss: {}, valid HGR loss: {}, valid SWFC loss: {}, valid CE loss: {}, valid AUX loss: {}, valid f1: {}, valid acc: {}'.format(
                     e + 1,
                     valid_loss,
                     valid_HGR_loss,
                     valid_SWFC_loss,
                     valid_CE_loss,
                     valid_AUX_loss,
-                    valid_CMCL_loss,
                     valid_f1,
                     valid_acc
                 )
             )
 
             print(
-                'Epoch {}, test loss: {}, test HGR loss: {}, test SWFC loss: {}, test CE loss: {}, test AUX loss: {}, test CMCL loss: {}, test f1: {}, test acc: {}, '.format(
+                'Epoch {}, test loss: {}, test HGR loss: {}, test SWFC loss: {}, test CE loss: {}, test AUX loss: {}, test f1: {}, test acc: {}, '.format(
                     e + 1,
                     test_loss,
                     test_HGR_loss,
                     test_SWFC_loss,
                     test_CE_loss,
                     test_AUX_loss,
-                    test_CMCL_loss,
                     test_f1,
                     test_acc
                 )
             )
 
-            # Large-scale experiments produce very large logs.
-            # The best report will still be printed at the end.
-            # print(test_report)
+            print(test_report)
 
             self.scheduler.step(valid_loss)
 
@@ -712,6 +617,11 @@ def get_args():
         help='coefficient of Cross Entropy loss'
     )
 
+    # ================================================================
+    # [MODIFIED]
+    # Auxiliary unimodal CE loss coefficient.
+    # Set to 0 to disable auxiliary unimodal loss.
+    # ================================================================
     parser.add_option(
         '--aux_loss_param',
         dest='aux_loss_param',
@@ -721,42 +631,10 @@ def get_args():
     )
 
     parser.add_option(
-        '--cmcl_loss_param',
-        dest='cmcl_loss_param',
-        default=0.0,
-        type='float',
-        help='coefficient of MELD-only ordinary CMCL'
-    )
-
-    parser.add_option(
-        '--cmcl_temp_param',
-        dest='cmcl_temp_param',
-        default=0.5,
-        type='float',
-        help='temperature of MELD-only ordinary CMCL'
-    )
-
-    parser.add_option(
-        '--meld_label_smoothing',
-        dest='meld_label_smoothing',
-        default=0.05,
-        type='float',
-        help='label smoothing value for MELD CE loss'
-    )
-
-    parser.add_option(
         '--multi_attn_flag',
         dest='multi_attn_flag',
         default=True,
         help='Multimodal fusion'
-    )
-
-    parser.add_option(
-        '--seed',
-        dest='seed',
-        default=2023,
-        type='int',
-        help='random seed'
     )
 
     (options, _) = parser.parse_args()
@@ -795,17 +673,17 @@ if __name__ == '__main__':
     SWFC_loss_param = args.SWFC_loss_param
     HGR_loss_param = args.HGR_loss_param
     CE_loss_param = args.CE_loss_param
+
+    # [MODIFIED]
     aux_loss_param = args.aux_loss_param
-    cmcl_loss_param = args.cmcl_loss_param
-    cmcl_temp_param = args.cmcl_temp_param
-    meld_label_smoothing = args.meld_label_smoothing
+
     multi_attn_flag = args.multi_attn_flag
-    seed = args.seed
 
     device = torch.device(
         'cuda' if torch.cuda.is_available() else 'cpu'
     )
 
+    seed = 2023
     set_seed(seed)
 
     multiemo_train = TrainMultiEMO(
@@ -827,9 +705,6 @@ if __name__ == '__main__':
         HGR_loss_param,
         CE_loss_param,
         aux_loss_param,
-        cmcl_loss_param,
-        cmcl_temp_param,
-        meld_label_smoothing,
         multi_attn_flag,
         device
     )

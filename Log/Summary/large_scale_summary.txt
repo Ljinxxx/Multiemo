@@ -1,0 +1,91 @@
+===== IEMOCAP Large Scale Results =====
+IEMOCAP_final_seed1234_epoch150.put
+Best test f1: 72.5224 at epoch 87
+
+IEMOCAP_final_seed2023_epoch150.put
+Best test f1: 72.9635 at epoch 124
+
+IEMOCAP_final_seed2024_epoch150.put
+Best test f1: 72.2087 at epoch 114
+
+IEMOCAP_final_seed2025_epoch150.put
+Best test f1: 71.4289 at epoch 86
+
+IEMOCAP_final_seed2026_epoch150.put
+Best test f1: 73.1335 at epoch 82
+
+IEMOCAP_final_seed2027_epoch150.put
+Best test f1: 72.6686 at epoch 95
+
+IEMOCAP_final_seed3037_epoch150.put
+Best test f1: 72.9367 at epoch 106
+
+IEMOCAP_final_seed42_epoch150.put
+Best test f1: 73.0622 at epoch 134
+
+IEMOCAP_final_seed6666_epoch150.put
+Best test f1: 72.4292 at epoch 71
+
+IEMOCAP_final_seed8888_epoch150.put
+
+===== MELD Large Scale Results =====
+MELD_cmcl0025_temp05_seed2023_epoch25.put
+Best test f1: 66.3881 at epoch 14
+
+MELD_cmcl0025_temp05_seed2024_epoch25.put
+Best test f1: 66.0643 at epoch 16
+
+MELD_cmcl0025_temp05_seed2025_epoch25.put
+Best test f1: 66.1572 at epoch 20
+
+MELD_cmcl0025_temp05_seed2026_epoch25.put
+Best test f1: 65.7604 at epoch 19
+
+MELD_cmcl0025_temp05_seed2027_epoch25.put
+Best test f1: 65.8148 at epoch 15
+
+MELD_cmcl0035_temp05_seed2023_epoch25.put
+Best test f1: 66.4994 at epoch 14
+
+MELD_cmcl0035_temp05_seed2024_epoch25.put
+Best test f1: 66.2091 at epoch 16
+
+MELD_cmcl0035_temp05_seed2025_epoch25.put
+Best test f1: 66.1311 at epoch 20
+
+MELD_cmcl0035_temp05_seed2026_epoch25.put
+Best test f1: 65.6753 at epoch 19
+
+MELD_cmcl0035_temp05_seed2027_epoch25.put
+Best test f1: 65.8127 at epoch 12
+
+MELD_cmcl003_temp05_seed2023_epoch25.put
+Best test f1: 66.4909 at epoch 14
+
+MELD_cmcl003_temp05_seed2024_epoch25.put
+Best test f1: 66.1781 at epoch 16
+
+MELD_cmcl003_temp05_seed2025_epoch25.put
+Best test f1: 66.0553 at epoch 20
+
+MELD_cmcl003_temp05_seed2026_epoch25.put
+Best test f1: 65.7278 at epoch 19
+
+MELD_cmcl003_temp05_seed2027_epoch25.put
+Best test f1: 65.8881 at epoch 15
+
+MELD_noCMCL_ls005_seed2023_epoch25.put
+Best test f1: 66.1603 at epoch 14
+
+MELD_noCMCL_ls005_seed2024_epoch25.put
+Best test f1: 65.9305 at epoch 11
+
+MELD_noCMCL_ls005_seed2025_epoch25.put
+Best test f1: 66.0697 at epoch 14
+
+MELD_noCMCL_ls005_seed2026_epoch25.put
+Best test f1: 65.604 at epoch 19
+
+MELD_noCMCL_ls005_seed2027_epoch25.put
+Best test f1: 65.869 at epoch 15
+

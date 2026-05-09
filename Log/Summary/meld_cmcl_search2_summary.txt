@@ -1,0 +1,4 @@
+Best test f1: 66.3527 at epoch 14
+Best test f1: 66.3839 at epoch 14
+Best test f1: 66.385 at epoch 14
+Best test f1: 66.3653 at epoch 14

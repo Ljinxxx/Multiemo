@@ -11,18 +11,15 @@ git clone https://github.com/TaoShi1998/MultiEMO-ACL2023.git
 ```
 ### Environment setup
 ```
-# Environment: Python 3.8 + Torch 2.2.2 + CUDA 11.8
-# Hardware: single RTX 4090 GPU, 256GB RAM
-conda create --name MultiEMOEnv python=3.8
+# Environment: Python 3.6.8 + Torch 1.10.0 + CUDA 11.3
+# Hardware: single RTX 3090 GPU, 256GB RAM
+conda create --name MultiEMOEnv python=3.6
 conda activate MultiEMOEnv
 ```
 ### Install dependencies
 ```
 cd MultiEMO
 pip install -r requirements.txt
-
-# If you need GPU support on RTX 4090, install the CUDA-enabled PyTorch build that matches your system.
-# Example: pip install torch==2.2.2 torchvision==0.17.2 --index-url https://download.pytorch.org/whl/cu118
 ```
 ### Run the model
 ```

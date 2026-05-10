@@ -1,6 +1,7 @@
 from DialogueRNN import BiModel
 from MultiAttn import MultiAttnModel
 from MLP import MLP
+from LineGraphAdapter import ParallelLineGraphLogitHead
 
 import torch
 import torch.nn as nn
@@ -29,12 +30,21 @@ class MultiEMO(nn.Module):
         context_attention,
         D_a,
         dropout_rec,
-        device
+        device,
+        use_line_graph=False,
+        line_graph_dropout=0.1,
+        line_graph_gate_init=-5.0,
+        line_graph_use_vector_gate=False,
+        line_graph_use_confidence_gate=True,
+        line_graph_uncertainty_gamma=1.0
     ):
         super().__init__()
 
         self.dataset = dataset
         self.multi_attn_flag = multi_attn_flag
+        self.use_line_graph = use_line_graph
+        self.line_graph_use_confidence_gate = line_graph_use_confidence_gate
+        self.line_graph_uncertainty_gamma = line_graph_uncertainty_gamma
 
         # Text modality
         self.text_fc = nn.Linear(roberta_dim, model_dim)
@@ -156,6 +166,18 @@ class MultiEMO(nn.Module):
             dropout
         )
 
+        # Parallel Line Graph Logit Head (Graph-v1b)
+        if self.use_line_graph:
+            self.line_graph_head = ParallelLineGraphLogitHead(
+                model_dim=model_dim,
+                num_classes=n_classes,
+                hidden_dim=model_dim,
+                dropout=line_graph_dropout,
+                gate_init=line_graph_gate_init
+            )
+        else:
+            self.line_graph_head = None
+
     def forward(
         self,
         texts,
@@ -229,70 +251,39 @@ class MultiEMO(nn.Module):
             fused_audio_features = audio_features
             fused_visual_features = visual_features
 
-        # Flatten and remove padded utterances
-        raw_text_features = raw_text_features.reshape(
-            -1,
-            raw_text_features.shape[-1]
-        )
-        raw_text_features = raw_text_features[padded_labels != -1]
+        # Keep sequence-level references before flatten
+        raw_text_seq = raw_text_features
+        raw_audio_seq = raw_audio_features
+        raw_visual_seq = raw_visual_features
+        fused_text_seq = fused_text_features
+        fused_audio_seq = fused_audio_features
+        fused_visual_seq = fused_visual_features
 
-        raw_audio_features = raw_audio_features.reshape(
-            -1,
-            raw_audio_features.shape[-1]
-        )
-        raw_audio_features = raw_audio_features[padded_labels != -1]
+        # Construct valid_mask for line graph adapter
+        valid_mask = utterance_masks.bool()
 
-        raw_visual_features = raw_visual_features.reshape(
-            -1,
-            raw_visual_features.shape[-1]
-        )
-        raw_visual_features = raw_visual_features[padded_labels != -1]
-
-        fused_text_features = fused_text_features.reshape(
-            -1,
-            fused_text_features.shape[-1]
-        )
-        fused_text_features = fused_text_features[padded_labels != -1]
-
-        fused_audio_features = fused_audio_features.reshape(
-            -1,
-            fused_audio_features.shape[-1]
-        )
-        fused_audio_features = fused_audio_features[padded_labels != -1]
-
-        fused_visual_features = fused_visual_features.reshape(
-            -1,
-            fused_visual_features.shape[-1]
-        )
-        fused_visual_features = fused_visual_features[padded_labels != -1]
-
-        # Auxiliary logits
-        text_aux_outputs = self.text_aux_classifier(raw_text_features)
-        audio_aux_outputs = self.audio_aux_classifier(raw_audio_features)
-        visual_aux_outputs = self.visual_aux_classifier(raw_visual_features)
-
-        # Dataset-specific fusion
+        # Construct sequence-level classifier input
         if self.dataset == 'IEMOCAP':
             # IEMOCAP uses residual skip: raw + fused
-            fused_features = torch.cat(
+            fused_features_seq = torch.cat(
                 (
-                    raw_text_features,
-                    raw_audio_features,
-                    raw_visual_features,
-                    fused_text_features,
-                    fused_audio_features,
-                    fused_visual_features
+                    raw_text_seq,
+                    raw_audio_seq,
+                    raw_visual_seq,
+                    fused_text_seq,
+                    fused_audio_seq,
+                    fused_visual_seq
                 ),
                 dim=-1
             )
 
         elif self.dataset == 'MELD':
             # MELD uses fused-only
-            fused_features = torch.cat(
+            fused_features_seq = torch.cat(
                 (
-                    fused_text_features,
-                    fused_audio_features,
-                    fused_visual_features
+                    fused_text_seq,
+                    fused_audio_seq,
+                    fused_visual_seq
                 ),
                 dim=-1
             )
@@ -300,8 +291,63 @@ class MultiEMO(nn.Module):
         else:
             raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
 
-        fc_outputs = self.fc(fused_features)
-        mlp_outputs = self.mlp(fc_outputs)
+        # Sequence-level fc
+        fc_outputs_seq = self.fc(fused_features_seq)  # [B, T, D]
+
+        # Flatten and remove padded utterances
+        flat_label_mask = (padded_labels != -1)
+
+        fc_outputs = fc_outputs_seq.reshape(-1, fc_outputs_seq.shape[-1])
+        fc_outputs = fc_outputs[flat_label_mask]
+
+        # Base logits from MLP classifier
+        base_logits = self.mlp(fc_outputs)
+
+        # Parallel Line Graph Logit Head
+        if self.use_line_graph:
+            graph_logits_delta_seq, graph_gate = self.line_graph_head(
+                fc_outputs_seq, valid_mask
+            )
+            graph_logits_delta = graph_logits_delta_seq.reshape(
+                -1, graph_logits_delta_seq.shape[-1]
+            )
+            graph_logits_delta = graph_logits_delta[flat_label_mask]
+
+            if self.line_graph_use_confidence_gate:
+                base_probs = torch.softmax(base_logits.detach(), dim=-1)
+                confidence = torch.max(base_probs, dim=-1, keepdim=True)[0]
+                uncertainty_gate = torch.pow(
+                    1.0 - confidence, self.line_graph_uncertainty_gamma
+                )
+                mlp_outputs = base_logits + graph_gate * uncertainty_gate * graph_logits_delta
+            else:
+                mlp_outputs = base_logits + graph_gate * graph_logits_delta
+        else:
+            mlp_outputs = base_logits
+
+        # Flatten raw/fused features for HGR loss and aux outputs
+        raw_text_features = raw_text_seq.reshape(-1, raw_text_seq.shape[-1])
+        raw_text_features = raw_text_features[flat_label_mask]
+
+        raw_audio_features = raw_audio_seq.reshape(-1, raw_audio_seq.shape[-1])
+        raw_audio_features = raw_audio_features[flat_label_mask]
+
+        raw_visual_features = raw_visual_seq.reshape(-1, raw_visual_seq.shape[-1])
+        raw_visual_features = raw_visual_features[flat_label_mask]
+
+        fused_text_features = fused_text_seq.reshape(-1, fused_text_seq.shape[-1])
+        fused_text_features = fused_text_features[flat_label_mask]
+
+        fused_audio_features = fused_audio_seq.reshape(-1, fused_audio_seq.shape[-1])
+        fused_audio_features = fused_audio_features[flat_label_mask]
+
+        fused_visual_features = fused_visual_seq.reshape(-1, fused_visual_seq.shape[-1])
+        fused_visual_features = fused_visual_features[flat_label_mask]
+
+        # Auxiliary logits
+        text_aux_outputs = self.text_aux_classifier(raw_text_features)
+        audio_aux_outputs = self.audio_aux_classifier(raw_audio_features)
+        visual_aux_outputs = self.visual_aux_classifier(raw_visual_features)
 
         return (
             fused_text_features,

@@ -101,7 +101,13 @@ class TrainMultiEMO():
         cmcl_temp_param,
         meld_label_smoothing,
         multi_attn_flag,
-        device
+        device,
+        use_line_graph=False,
+        line_graph_dropout=0.1,
+        line_graph_gate_init=-3.0,
+        line_graph_use_vector_gate=False,
+        line_graph_use_confidence_gate=True,
+        line_graph_uncertainty_gamma=1.0
     ):
         self.dataset = dataset
         self.batch_size = batch_size
@@ -128,6 +134,13 @@ class TrainMultiEMO():
 
         self.multi_attn_flag = multi_attn_flag
         self.device = device
+
+        self.use_line_graph = use_line_graph
+        self.line_graph_dropout = line_graph_dropout
+        self.line_graph_gate_init = line_graph_gate_init
+        self.line_graph_use_vector_gate = line_graph_use_vector_gate
+        self.line_graph_use_confidence_gate = line_graph_use_confidence_gate
+        self.line_graph_uncertainty_gamma = line_graph_uncertainty_gamma
 
         self.best_test_f1 = 0.0
         self.best_epoch = 1
@@ -252,7 +265,13 @@ class TrainMultiEMO():
             context_attention,
             D_a,
             self.dropout_rec,
-            self.device
+            self.device,
+            use_line_graph=self.use_line_graph,
+            line_graph_dropout=self.line_graph_dropout,
+            line_graph_gate_init=self.line_graph_gate_init,
+            line_graph_use_vector_gate=self.line_graph_use_vector_gate,
+            line_graph_use_confidence_gate=self.line_graph_use_confidence_gate,
+            line_graph_uncertainty_gamma=self.line_graph_uncertainty_gamma
         ).to(self.device)
 
     def get_loss(self):
@@ -752,6 +771,54 @@ def get_args():
     )
 
     parser.add_option(
+        '--use_line_graph',
+        dest='use_line_graph',
+        default=0,
+        type='int',
+        help='whether to enable Local Residual LineGraph Adapter: 0 or 1'
+    )
+
+    parser.add_option(
+        '--line_graph_dropout',
+        dest='line_graph_dropout',
+        default=0.1,
+        type='float',
+        help='dropout rate in LineGraph adapter'
+    )
+
+    parser.add_option(
+        '--line_graph_gate_init',
+        dest='line_graph_gate_init',
+        default=-5.0,
+        type='float',
+        help='initial logit for residual graph gate; -5.0 means graph branch starts nearly closed'
+    )
+
+    parser.add_option(
+        '--line_graph_use_vector_gate',
+        dest='line_graph_use_vector_gate',
+        default=0,
+        type='int',
+        help='whether to use vector gate instead of scalar gate: 0 or 1'
+    )
+
+    parser.add_option(
+        '--line_graph_use_confidence_gate',
+        dest='line_graph_use_confidence_gate',
+        default=1,
+        type='int',
+        help='whether to use confidence-aware uncertainty gate: 0 or 1'
+    )
+
+    parser.add_option(
+        '--line_graph_uncertainty_gamma',
+        dest='line_graph_uncertainty_gamma',
+        default=1.0,
+        type='float',
+        help='exponent for uncertainty gate: (1 - confidence)^gamma'
+    )
+
+    parser.add_option(
         '--seed',
         dest='seed',
         default=2023,
@@ -802,6 +869,13 @@ if __name__ == '__main__':
     multi_attn_flag = args.multi_attn_flag
     seed = args.seed
 
+    use_line_graph = bool(args.use_line_graph)
+    line_graph_dropout = args.line_graph_dropout
+    line_graph_gate_init = args.line_graph_gate_init
+    line_graph_use_vector_gate = bool(args.line_graph_use_vector_gate)
+    line_graph_use_confidence_gate = bool(args.line_graph_use_confidence_gate)
+    line_graph_uncertainty_gamma = args.line_graph_uncertainty_gamma
+
     device = torch.device(
         'cuda' if torch.cuda.is_available() else 'cpu'
     )
@@ -831,7 +905,13 @@ if __name__ == '__main__':
         cmcl_temp_param,
         meld_label_smoothing,
         multi_attn_flag,
-        device
+        device,
+        use_line_graph=use_line_graph,
+        line_graph_dropout=line_graph_dropout,
+        line_graph_gate_init=line_graph_gate_init,
+        line_graph_use_vector_gate=line_graph_use_vector_gate,
+        line_graph_use_confidence_gate=line_graph_use_confidence_gate,
+        line_graph_uncertainty_gamma=line_graph_uncertainty_gamma
     )
 
     multiemo_train.train_or_eval_linear_model()

@@ -2,6 +2,7 @@ from DialogueRNN import BiModel
 from MultiAttn import MultiAttnModel
 from MLP import MLP
 from LineGraphAdapter import ParallelLineGraphLogitHead
+from SpeakerRoleRelationGraph import SpeakerRoleRelationGraphDiscriminator
 
 import torch
 import torch.nn as nn
@@ -36,7 +37,11 @@ class MultiEMO(nn.Module):
         line_graph_gate_init=-5.0,
         line_graph_use_vector_gate=False,
         line_graph_use_confidence_gate=True,
-        line_graph_uncertainty_gamma=1.0
+        line_graph_uncertainty_gamma=1.0,
+        use_speaker_role_adv=False,
+        speaker_adv_dropout=0.1,
+        speaker_adv_hidden_dim=None,
+        speaker_adv_max_pairs_per_dialogue=32
     ):
         super().__init__()
 
@@ -45,6 +50,7 @@ class MultiEMO(nn.Module):
         self.use_line_graph = use_line_graph
         self.line_graph_use_confidence_gate = line_graph_use_confidence_gate
         self.line_graph_uncertainty_gamma = line_graph_uncertainty_gamma
+        self.use_speaker_role_adv = use_speaker_role_adv
 
         # Text modality
         self.text_fc = nn.Linear(roberta_dim, model_dim)
@@ -178,6 +184,17 @@ class MultiEMO(nn.Module):
         else:
             self.line_graph_head = None
 
+        # Speaker-Role Relation Graph Adversarial Discriminator
+        if self.use_speaker_role_adv:
+            self.speaker_relation_discriminator = SpeakerRoleRelationGraphDiscriminator(
+                model_dim=model_dim,
+                hidden_dim=speaker_adv_hidden_dim if speaker_adv_hidden_dim is not None else model_dim,
+                dropout=speaker_adv_dropout,
+                max_pairs_per_dialogue=speaker_adv_max_pairs_per_dialogue
+            )
+        else:
+            self.speaker_relation_discriminator = None
+
     def forward(
         self,
         texts,
@@ -185,7 +202,10 @@ class MultiEMO(nn.Module):
         visuals,
         speaker_masks,
         utterance_masks,
-        padded_labels
+        padded_labels,
+        compute_speaker_relation=False,
+        speaker_grl_lambda=0.0,
+        return_fc_outputs_seq=False
     ):
         # Text modality
         text_features = self.text_fc(texts)
@@ -349,13 +369,70 @@ class MultiEMO(nn.Module):
         audio_aux_outputs = self.audio_aux_classifier(raw_audio_features)
         visual_aux_outputs = self.visual_aux_classifier(raw_visual_features)
 
-        return (
-            fused_text_features,
-            fused_audio_features,
-            fused_visual_features,
-            fc_outputs,
-            mlp_outputs,
-            text_aux_outputs,
-            audio_aux_outputs,
-            visual_aux_outputs
-        )
+        # Speaker-Role Relation Graph Adversarial Branch
+        speaker_relation_logits = None
+        speaker_relation_labels = None
+
+        if self.use_speaker_role_adv and compute_speaker_relation:
+            # speaker_masks is [T, B, S] from dataloader, transpose to [B, T, S]
+            speaker_masks_bt = speaker_masks.transpose(0, 1)
+            speaker_relation_logits, speaker_relation_labels = \
+                self.speaker_relation_discriminator(
+                    fc_outputs_seq,
+                    valid_mask,
+                    speaker_masks_bt,
+                    grl_lambda=speaker_grl_lambda
+                )
+
+        if compute_speaker_relation:
+            if return_fc_outputs_seq:
+                return (
+                    fused_text_features,
+                    fused_audio_features,
+                    fused_visual_features,
+                    fc_outputs,
+                    mlp_outputs,
+                    text_aux_outputs,
+                    audio_aux_outputs,
+                    visual_aux_outputs,
+                    speaker_relation_logits,
+                    speaker_relation_labels,
+                    fc_outputs_seq
+                )
+            else:
+                return (
+                    fused_text_features,
+                    fused_audio_features,
+                    fused_visual_features,
+                    fc_outputs,
+                    mlp_outputs,
+                    text_aux_outputs,
+                    audio_aux_outputs,
+                    visual_aux_outputs,
+                    speaker_relation_logits,
+                    speaker_relation_labels
+                )
+        else:
+            if return_fc_outputs_seq:
+                return (
+                    fused_text_features,
+                    fused_audio_features,
+                    fused_visual_features,
+                    fc_outputs,
+                    mlp_outputs,
+                    text_aux_outputs,
+                    audio_aux_outputs,
+                    visual_aux_outputs,
+                    fc_outputs_seq
+                )
+            else:
+                return (
+                    fused_text_features,
+                    fused_audio_features,
+                    fused_visual_features,
+                    fc_outputs,
+                    mlp_outputs,
+                    text_aux_outputs,
+                    audio_aux_outputs,
+                    visual_aux_outputs
+                )

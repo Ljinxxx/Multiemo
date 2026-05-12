@@ -3,6 +3,7 @@ sys.path.append('Loss')
 sys.path.append('Model')
 sys.path.append('Dataset')
 
+import os
 from SampleWeightedFocalContrastiveLoss import SampleWeightedFocalContrastiveLoss
 from SoftHGRLoss import SoftHGRLoss
 from IEMOCAPDataset import IEMOCAPDataset
@@ -107,7 +108,15 @@ class TrainMultiEMO():
         line_graph_gate_init=-3.0,
         line_graph_use_vector_gate=False,
         line_graph_use_confidence_gate=True,
-        line_graph_uncertainty_gamma=1.0
+        line_graph_uncertainty_gamma=1.0,
+        use_speaker_role_adv=False,
+        speaker_adv_lambda=0.05,
+        speaker_adv_warmup_epochs=5,
+        speaker_adv_dropout=0.1,
+        speaker_adv_hidden_dim=None,
+        speaker_adv_max_pairs_per_dialogue=32,
+        save_model_path='',
+        save_best_model=True
     ):
         self.dataset = dataset
         self.batch_size = batch_size
@@ -142,7 +151,19 @@ class TrainMultiEMO():
         self.line_graph_use_confidence_gate = line_graph_use_confidence_gate
         self.line_graph_uncertainty_gamma = line_graph_uncertainty_gamma
 
+        self.use_speaker_role_adv = use_speaker_role_adv
+        self.speaker_adv_lambda = speaker_adv_lambda
+        self.speaker_adv_warmup_epochs = speaker_adv_warmup_epochs
+        self.speaker_adv_dropout = speaker_adv_dropout
+        self.speaker_adv_hidden_dim = speaker_adv_hidden_dim
+        self.speaker_adv_max_pairs_per_dialogue = speaker_adv_max_pairs_per_dialogue
+
+        self.save_model_path = save_model_path
+        self.save_best_model = save_best_model
+
         self.best_test_f1 = 0.0
+        self.best_test_macro_f1 = 0.0
+        self.best_test_acc = 0.0
         self.best_epoch = 1
         self.best_test_report = None
 
@@ -271,7 +292,11 @@ class TrainMultiEMO():
             line_graph_gate_init=self.line_graph_gate_init,
             line_graph_use_vector_gate=self.line_graph_use_vector_gate,
             line_graph_use_confidence_gate=self.line_graph_use_confidence_gate,
-            line_graph_uncertainty_gamma=self.line_graph_uncertainty_gamma
+            line_graph_uncertainty_gamma=self.line_graph_uncertainty_gamma,
+            use_speaker_role_adv=self.use_speaker_role_adv,
+            speaker_adv_dropout=self.speaker_adv_dropout,
+            speaker_adv_hidden_dim=self.speaker_adv_hidden_dim,
+            speaker_adv_max_pairs_per_dialogue=self.speaker_adv_max_pairs_per_dialogue
         ).to(self.device)
 
     def get_loss(self):
@@ -325,7 +350,16 @@ class TrainMultiEMO():
             verbose=True
         )
 
-    def train_or_eval_model_per_epoch(self, dataloader, train=True):
+    def get_current_speaker_grl_lambda(self, epoch):
+        """Compute current GRL lambda with linear warmup."""
+        if not self.use_speaker_role_adv:
+            return 0.0
+        if self.speaker_adv_warmup_epochs <= 0:
+            return self.speaker_adv_lambda
+        progress = min(1.0, float(epoch + 1) / float(self.speaker_adv_warmup_epochs))
+        return self.speaker_adv_lambda * progress
+
+    def train_or_eval_model_per_epoch(self, dataloader, train=True, current_epoch=0):
         if train:
             self.model.train()
         else:
@@ -338,8 +372,19 @@ class TrainMultiEMO():
         total_AUX_loss = 0.0
         total_CMCL_loss = 0.0
 
+        # Speaker relation statistics
+        total_speaker_rel_loss_weighted = 0.0
+        total_speaker_rel_correct = 0.0
+        total_speaker_rel_pairs = 0
+        total_speaker_rel_pos = 0
+        total_speaker_rel_neg = 0
+        speaker_rel_active_batches = 0
+
         all_labels = []
         all_preds = []
+
+        compute_speaker_relation = train and self.use_speaker_role_adv
+        speaker_grl_lambda = self.get_current_speaker_grl_lambda(current_epoch) if train else 0.0
 
         for _, data in enumerate(dataloader):
             if train:
@@ -352,23 +397,46 @@ class TrainMultiEMO():
             padded_labels = padded_labels.reshape(-1)
             labels = padded_labels[padded_labels != -1]
 
-            (
-                fused_text_features,
-                fused_audio_features,
-                fused_visual_features,
-                fc_outputs,
-                mlp_outputs,
-                text_aux_outputs,
-                audio_aux_outputs,
-                visual_aux_outputs
-            ) = self.model(
-                padded_texts,
-                padded_audios,
-                padded_visuals,
-                padded_speaker_masks,
-                padded_utterance_masks,
-                padded_labels
-            )
+            if compute_speaker_relation:
+                (
+                    fused_text_features,
+                    fused_audio_features,
+                    fused_visual_features,
+                    fc_outputs,
+                    mlp_outputs,
+                    text_aux_outputs,
+                    audio_aux_outputs,
+                    visual_aux_outputs,
+                    speaker_relation_logits,
+                    speaker_relation_labels
+                ) = self.model(
+                    padded_texts,
+                    padded_audios,
+                    padded_visuals,
+                    padded_speaker_masks,
+                    padded_utterance_masks,
+                    padded_labels,
+                    compute_speaker_relation=True,
+                    speaker_grl_lambda=speaker_grl_lambda
+                )
+            else:
+                (
+                    fused_text_features,
+                    fused_audio_features,
+                    fused_visual_features,
+                    fc_outputs,
+                    mlp_outputs,
+                    text_aux_outputs,
+                    audio_aux_outputs,
+                    visual_aux_outputs
+                ) = self.model(
+                    padded_texts,
+                    padded_audios,
+                    padded_visuals,
+                    padded_speaker_masks,
+                    padded_utterance_masks,
+                    padded_labels
+                )
 
             soft_HGR_loss = self.HGR_loss(
                 fused_text_features,
@@ -427,12 +495,38 @@ class TrainMultiEMO():
             else:
                 raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
 
+            # Speaker relation adversarial loss
+            speaker_relation_loss = mlp_outputs.new_tensor(0.0)
+
+            if compute_speaker_relation and speaker_relation_logits is not None and speaker_relation_logits.numel() > 0:
+                speaker_relation_loss = F.binary_cross_entropy_with_logits(
+                    speaker_relation_logits,
+                    speaker_relation_labels
+                )
+
+                num_pairs = speaker_relation_labels.numel()
+                num_pos = int((speaker_relation_labels == 1).sum().item())
+                num_neg = int((speaker_relation_labels == 0).sum().item())
+
+                with torch.no_grad():
+                    relation_probs = torch.sigmoid(speaker_relation_logits)
+                    relation_preds = (relation_probs >= 0.5).float()
+                    relation_correct = (relation_preds == speaker_relation_labels).float().sum().item()
+
+                total_speaker_rel_loss_weighted += speaker_relation_loss.item() * num_pairs
+                total_speaker_rel_correct += relation_correct
+                total_speaker_rel_pairs += num_pairs
+                total_speaker_rel_pos += num_pos
+                total_speaker_rel_neg += num_neg
+                speaker_rel_active_batches += 1
+
             loss = (
                 soft_HGR_loss * self.HGR_loss_param
                 + SWFC_loss * self.SWFC_loss_param
                 + CE_loss * self.CE_loss_param
                 + AUX_loss * self.aux_loss_param
                 + CMCL_loss * self.cmcl_loss_param
+                + speaker_relation_loss
             )
 
             total_loss += loss.item()
@@ -454,8 +548,13 @@ class TrainMultiEMO():
         all_labels = np.concatenate(all_labels)
         all_preds = np.concatenate(all_preds)
 
-        avg_f1 = round(
+        avg_weighted_f1 = round(
             f1_score(all_labels, all_preds, average='weighted') * 100,
+            4
+        )
+
+        avg_macro_f1 = round(
+            f1_score(all_labels, all_preds, average='macro') * 100,
             4
         )
 
@@ -470,6 +569,18 @@ class TrainMultiEMO():
             digits=4
         )
 
+        # Speaker relation epoch-level statistics
+        if total_speaker_rel_pairs > 0:
+            avg_speaker_rel_loss = round(
+                total_speaker_rel_loss_weighted / total_speaker_rel_pairs, 4
+            )
+            avg_speaker_rel_acc = round(
+                total_speaker_rel_correct / total_speaker_rel_pairs * 100, 2
+            )
+        else:
+            avg_speaker_rel_loss = 0.0
+            avg_speaker_rel_acc = 0.0
+
         return (
             round(total_loss, 4),
             round(total_HGR_loss, 4),
@@ -477,7 +588,14 @@ class TrainMultiEMO():
             round(total_CE_loss, 4),
             round(total_AUX_loss, 4),
             round(total_CMCL_loss, 4),
-            avg_f1,
+            avg_speaker_rel_loss,
+            avg_speaker_rel_acc,
+            total_speaker_rel_pairs,
+            total_speaker_rel_pos,
+            total_speaker_rel_neg,
+            speaker_rel_active_batches,
+            avg_weighted_f1,
+            avg_macro_f1,
             avg_acc,
             report
         )
@@ -491,12 +609,20 @@ class TrainMultiEMO():
                 train_CE_loss,
                 train_AUX_loss,
                 train_CMCL_loss,
-                train_f1,
+                train_speaker_rel_loss,
+                train_speaker_rel_acc,
+                train_speaker_rel_pair_num,
+                train_speaker_rel_pos_num,
+                train_speaker_rel_neg_num,
+                train_speaker_rel_active_batches,
+                train_weighted_f1,
+                train_macro_f1,
                 train_acc,
                 _
             ) = self.train_or_eval_model_per_epoch(
                 self.train_dataloader,
-                train=True
+                train=True,
+                current_epoch=e
             )
 
             with torch.no_grad():
@@ -507,12 +633,20 @@ class TrainMultiEMO():
                     valid_CE_loss,
                     valid_AUX_loss,
                     valid_CMCL_loss,
-                    valid_f1,
+                    _,
+                    _,
+                    _,
+                    _,
+                    _,
+                    _,
+                    valid_weighted_f1,
+                    valid_macro_f1,
                     valid_acc,
                     _
                 ) = self.train_or_eval_model_per_epoch(
                     self.valid_dataloader,
-                    train=False
+                    train=False,
+                    current_epoch=e
                 )
 
                 (
@@ -522,30 +656,67 @@ class TrainMultiEMO():
                     test_CE_loss,
                     test_AUX_loss,
                     test_CMCL_loss,
-                    test_f1,
+                    _,
+                    _,
+                    _,
+                    _,
+                    _,
+                    _,
+                    test_weighted_f1,
+                    test_macro_f1,
                     test_acc,
                     test_report
                 ) = self.train_or_eval_model_per_epoch(
                     self.test_dataloader,
-                    train=False
+                    train=False,
+                    current_epoch=e
+                )
+
+            if self.use_speaker_role_adv:
+                current_grl = self.get_current_speaker_grl_lambda(e)
+                print(
+                    'Epoch {}, train loss: {}, train HGR loss: {}, train SWFC loss: {}, train CE loss: {}, train AUX loss: {}, train CMCL loss: {}, '
+                    'train speaker_rel loss: {}, train speaker_rel acc: {}%, train speaker_rel pairs: {}, train speaker_rel pos: {}, train speaker_rel neg: {}, train speaker_rel active batches: {}, grl lambda: {:.4f}, '
+                    'train weighted f1: {}, train macro f1: {}, train acc: {}'.format(
+                        e + 1,
+                        train_loss,
+                        train_HGR_loss,
+                        train_SWFC_loss,
+                        train_CE_loss,
+                        train_AUX_loss,
+                        train_CMCL_loss,
+                        train_speaker_rel_loss,
+                        train_speaker_rel_acc,
+                        train_speaker_rel_pair_num,
+                        train_speaker_rel_pos_num,
+                        train_speaker_rel_neg_num,
+                        train_speaker_rel_active_batches,
+                        current_grl,
+                        train_weighted_f1,
+                        train_macro_f1,
+                        train_acc
+                    )
+                )
+            else:
+                print(
+                    'Epoch {}, train loss: {}, train HGR loss: {}, train SWFC loss: {}, train CE loss: {}, train AUX loss: {}, train CMCL loss: {}, '
+                    'train weighted f1: {}, train macro f1: {}, train acc: {}'.format(
+                        e + 1,
+                        train_loss,
+                        train_HGR_loss,
+                        train_SWFC_loss,
+                        train_CE_loss,
+                        train_AUX_loss,
+                        train_CMCL_loss,
+                        train_weighted_f1,
+                        train_macro_f1,
+                        train_acc
+                    )
                 )
 
             print(
-                'Epoch {}, train loss: {}, train HGR loss: {}, train SWFC loss: {}, train CE loss: {}, train AUX loss: {}, train CMCL loss: {}, train f1: {}, train acc: {}'.format(
-                    e + 1,
-                    train_loss,
-                    train_HGR_loss,
-                    train_SWFC_loss,
-                    train_CE_loss,
-                    train_AUX_loss,
-                    train_CMCL_loss,
-                    train_f1,
-                    train_acc
-                )
-            )
-
-            print(
-                'Epoch {}, valid loss: {}, valid HGR loss: {}, valid SWFC loss: {}, valid CE loss: {}, valid AUX loss: {}, valid CMCL loss: {}, valid f1: {}, valid acc: {}'.format(
+                'Epoch {}, valid loss: {}, valid HGR loss: {}, valid SWFC loss: {}, valid CE loss: {}, valid AUX loss: {}, valid CMCL loss: {}, '
+                'valid weighted f1: {}, valid macro f1: {}, valid acc: {}'.format(
                     e + 1,
                     valid_loss,
                     valid_HGR_loss,
@@ -553,13 +724,15 @@ class TrainMultiEMO():
                     valid_CE_loss,
                     valid_AUX_loss,
                     valid_CMCL_loss,
-                    valid_f1,
+                    valid_weighted_f1,
+                    valid_macro_f1,
                     valid_acc
                 )
             )
 
             print(
-                'Epoch {}, test loss: {}, test HGR loss: {}, test SWFC loss: {}, test CE loss: {}, test AUX loss: {}, test CMCL loss: {}, test f1: {}, test acc: {}, '.format(
+                'Epoch {}, test loss: {}, test HGR loss: {}, test SWFC loss: {}, test CE loss: {}, test AUX loss: {}, test CMCL loss: {}, '
+                'test weighted f1: {}, test macro f1: {}, test acc: {}'.format(
                     e + 1,
                     test_loss,
                     test_HGR_loss,
@@ -567,7 +740,8 @@ class TrainMultiEMO():
                     test_CE_loss,
                     test_AUX_loss,
                     test_CMCL_loss,
-                    test_f1,
+                    test_weighted_f1,
+                    test_macro_f1,
                     test_acc
                 )
             )
@@ -578,15 +752,75 @@ class TrainMultiEMO():
 
             self.scheduler.step(valid_loss)
 
-            if test_f1 >= self.best_test_f1:
-                self.best_test_f1 = test_f1
+            if test_weighted_f1 >= self.best_test_f1:
+                self.best_test_f1 = test_weighted_f1
+                self.best_test_macro_f1 = test_macro_f1
+                self.best_test_acc = test_acc
                 self.best_epoch = e + 1
                 self.best_test_report = test_report
 
+                if self.save_best_model and self.save_model_path:
+                    save_dir = os.path.dirname(self.save_model_path)
+                    if save_dir:
+                        os.makedirs(save_dir, exist_ok=True)
+                    checkpoint = {
+                        'model_state_dict': self.model.state_dict(),
+                        'best_epoch': self.best_epoch,
+                        'best_test_weighted_f1': self.best_test_f1,
+                        'best_test_macro_f1': self.best_test_macro_f1,
+                        'best_test_acc': self.best_test_acc,
+                        'dataset': self.dataset,
+                        'batch_size': self.batch_size,
+                        'num_epochs': self.num_epochs,
+                        'learning_rate': self.learning_rate,
+                        'weight_decay': self.weight_decay,
+                        'num_layers': self.num_layers,
+                        'model_dim': self.model_dim,
+                        'num_heads': self.num_heads,
+                        'hidden_dim': self.hidden_dim,
+                        'dropout_rate': self.dropout_rate,
+                        'dropout_rec': self.dropout_rec,
+                        'temp_param': self.temp_param,
+                        'focus_param': self.focus_param,
+                        'sample_weight_param': self.sample_weight_param,
+                        'SWFC_loss_param': self.SWFC_loss_param,
+                        'HGR_loss_param': self.HGR_loss_param,
+                        'CE_loss_param': self.CE_loss_param,
+                        'aux_loss_param': self.aux_loss_param,
+                        'cmcl_loss_param': self.cmcl_loss_param,
+                        'cmcl_temp_param': self.cmcl_temp_param,
+                        'meld_label_smoothing': self.meld_label_smoothing,
+                        'multi_attn_flag': self.multi_attn_flag,
+                        'use_line_graph': self.use_line_graph,
+                        'line_graph_dropout': self.line_graph_dropout,
+                        'line_graph_gate_init': self.line_graph_gate_init,
+                        'line_graph_use_vector_gate': self.line_graph_use_vector_gate,
+                        'line_graph_use_confidence_gate': self.line_graph_use_confidence_gate,
+                        'line_graph_uncertainty_gamma': self.line_graph_uncertainty_gamma,
+                        'use_speaker_role_adv': self.use_speaker_role_adv,
+                        'speaker_adv_lambda': self.speaker_adv_lambda,
+                        'speaker_adv_warmup_epochs': self.speaker_adv_warmup_epochs,
+                        'speaker_adv_dropout': self.speaker_adv_dropout,
+                        'speaker_adv_hidden_dim': self.speaker_adv_hidden_dim,
+                        'speaker_adv_max_pairs_per_dialogue': self.speaker_adv_max_pairs_per_dialogue,
+                    }
+                    torch.save(checkpoint, self.save_model_path)
+                    print(f'Saved best checkpoint to {self.save_model_path}')
+
         print(
-            'Best test f1: {} at epoch {}'.format(
+            'Best test weighted f1: {} at epoch {}'.format(
                 self.best_test_f1,
                 self.best_epoch
+            )
+        )
+        print(
+            'Best test macro f1: {}'.format(
+                self.best_test_macro_f1
+            )
+        )
+        print(
+            'Best test acc: {}'.format(
+                self.best_test_acc
             )
         )
         print(self.best_test_report)
@@ -819,6 +1053,70 @@ def get_args():
     )
 
     parser.add_option(
+        '--use_speaker_role_adv',
+        dest='use_speaker_role_adv',
+        default=0,
+        type='int',
+        help='whether to enable speaker-role relation adversarial branch: 0 or 1'
+    )
+
+    parser.add_option(
+        '--speaker_adv_lambda',
+        dest='speaker_adv_lambda',
+        default=0.05,
+        type='float',
+        help='max GRL lambda for speaker-role adversarial disentanglement'
+    )
+
+    parser.add_option(
+        '--speaker_adv_warmup_epochs',
+        dest='speaker_adv_warmup_epochs',
+        default=5,
+        type='int',
+        help='warmup epochs for GRL lambda'
+    )
+
+    parser.add_option(
+        '--speaker_adv_dropout',
+        dest='speaker_adv_dropout',
+        default=0.1,
+        type='float',
+        help='dropout in speaker-role relation graph discriminator'
+    )
+
+    parser.add_option(
+        '--speaker_adv_hidden_dim',
+        dest='speaker_adv_hidden_dim',
+        default=256,
+        type='int',
+        help='hidden dimension of speaker-role relation graph discriminator'
+    )
+
+    parser.add_option(
+        '--speaker_adv_max_pairs_per_dialogue',
+        dest='speaker_adv_max_pairs_per_dialogue',
+        default=32,
+        type='int',
+        help='max balanced same/different speaker-role pairs sampled per dialogue'
+    )
+
+    parser.add_option(
+        '--save_model_path',
+        dest='save_model_path',
+        default='',
+        type='str',
+        help='path to save best model checkpoint; empty means do not save'
+    )
+
+    parser.add_option(
+        '--save_best_model',
+        dest='save_best_model',
+        default=1,
+        type='int',
+        help='whether to save best model checkpoint: 0 or 1'
+    )
+
+    parser.add_option(
         '--seed',
         dest='seed',
         default=2023,
@@ -876,6 +1174,16 @@ if __name__ == '__main__':
     line_graph_use_confidence_gate = bool(args.line_graph_use_confidence_gate)
     line_graph_uncertainty_gamma = args.line_graph_uncertainty_gamma
 
+    use_speaker_role_adv = bool(args.use_speaker_role_adv)
+    speaker_adv_lambda = args.speaker_adv_lambda
+    speaker_adv_warmup_epochs = args.speaker_adv_warmup_epochs
+    speaker_adv_dropout = args.speaker_adv_dropout
+    speaker_adv_hidden_dim = args.speaker_adv_hidden_dim
+    speaker_adv_max_pairs_per_dialogue = args.speaker_adv_max_pairs_per_dialogue
+
+    save_model_path = args.save_model_path
+    save_best_model = bool(args.save_best_model)
+
     device = torch.device(
         'cuda' if torch.cuda.is_available() else 'cpu'
     )
@@ -911,7 +1219,15 @@ if __name__ == '__main__':
         line_graph_gate_init=line_graph_gate_init,
         line_graph_use_vector_gate=line_graph_use_vector_gate,
         line_graph_use_confidence_gate=line_graph_use_confidence_gate,
-        line_graph_uncertainty_gamma=line_graph_uncertainty_gamma
+        line_graph_uncertainty_gamma=line_graph_uncertainty_gamma,
+        use_speaker_role_adv=use_speaker_role_adv,
+        speaker_adv_lambda=speaker_adv_lambda,
+        speaker_adv_warmup_epochs=speaker_adv_warmup_epochs,
+        speaker_adv_dropout=speaker_adv_dropout,
+        speaker_adv_hidden_dim=speaker_adv_hidden_dim,
+        speaker_adv_max_pairs_per_dialogue=speaker_adv_max_pairs_per_dialogue,
+        save_model_path=save_model_path,
+        save_best_model=save_best_model
     )
 
     multiemo_train.train_or_eval_linear_model()

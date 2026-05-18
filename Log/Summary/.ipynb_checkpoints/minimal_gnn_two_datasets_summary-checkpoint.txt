@@ -1,0 +1,6 @@
+===== IEMOCAP Minimal GNN =====
+Best test f1: 64.1628 at epoch 24
+
+===== MELD Minimal GNN =====
+Best test f1: 50.8691 at epoch 22
+

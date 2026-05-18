@@ -1,0 +1,2 @@
+Best test f1: 70.7179 at epoch 73
+Best test f1: 65.9651 at epoch 14

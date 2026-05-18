@@ -1,0 +1,29 @@
+===== IEMOCAP Next Graph MTL Results =====
+IEMOCAP_graph_mtl_best_150ep_seed2023.put
+Best test f1: 73.2951 at epoch 133
+
+IEMOCAP_graph_mtl_best_150ep_seed2024.put
+Best test f1: 72.182 at epoch 52
+
+IEMOCAP_graph_mtl_best_150ep_seed2025.put
+Best test f1: 72.6993 at epoch 87
+
+IEMOCAP_graph_mtl_light_identity_150ep_seed2023.put
+Best test f1: 73.3203 at epoch 122
+
+===== MELD Next Graph MTL Results =====
+MELD_aux_graph_emotion_only_no_residual_seed2023.put
+Best test f1: 65.797 at epoch 10
+
+MELD_aux_graph_identity_no_residual_seed2023.put
+Best test f1: 65.6921 at epoch 13
+
+MELD_aux_identity_only_no_residual_seed2023.put
+Best test f1: 65.9462 at epoch 13
+
+MELD_cmcl_baseline_no_graph_seed2023.put
+Best test f1: 65.8438 at epoch 15
+
+MELD_weak_residual_identity_seed2023.put
+Best test f1: 65.9009 at epoch 13
+

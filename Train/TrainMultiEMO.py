@@ -1,0 +1,1089 @@
+import sys
+import os
+sys.path.append('Loss')
+sys.path.append('Model')
+sys.path.append('Dataset')
+
+from SampleWeightedFocalContrastiveLoss import SampleWeightedFocalContrastiveLoss
+from SoftHGRLoss import SoftHGRLoss
+from IEMOCAPDataset import IEMOCAPDataset
+from MELDDataset import MELDDataset
+from MultiEMO_Model import MultiEMO
+from CrossTaskGNN import GraphMultiTaskGNN
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+from optparse import OptionParser
+import torch.optim as optim
+import numpy as np
+from sklearn.metrics import classification_report, f1_score, accuracy_score
+import warnings
+warnings.filterwarnings('ignore')
+from torch.utils.data.sampler import SubsetRandomSampler
+import random
+
+
+class CrossModalContrastiveLoss(nn.Module):
+    def __init__(self, temperature=0.5):
+        super().__init__()
+        self.temperature = temperature
+
+    def pair_contrastive_loss(self, x, y):
+        if x.size(0) <= 1:
+            return x.new_tensor(0.0)
+
+        x = F.normalize(x, dim=-1)
+        y = F.normalize(y, dim=-1)
+
+        logits = torch.matmul(x, y.t()) / self.temperature
+        targets = torch.arange(x.size(0), device=x.device)
+
+        loss_xy = F.cross_entropy(logits, targets)
+        loss_yx = F.cross_entropy(logits.t(), targets)
+
+        return (loss_xy + loss_yx) / 2.0
+
+    def forward(self, text_features, audio_features, visual_features):
+        loss_ta = self.pair_contrastive_loss(
+            text_features,
+            audio_features
+        )
+
+        loss_tv = self.pair_contrastive_loss(
+            text_features,
+            visual_features
+        )
+
+        loss_av = self.pair_contrastive_loss(
+            audio_features,
+            visual_features
+        )
+
+        return (loss_ta + loss_tv + loss_av) / 3.0
+
+
+class TrainMultiEMO():
+    def __init__(
+        self,
+        dataset,
+        batch_size,
+        num_epochs,
+        learning_rate,
+        weight_decay,
+        num_layers,
+        model_dim,
+        num_heads,
+        hidden_dim,
+        dropout_rate,
+        dropout_rec,
+        temp_param,
+        focus_param,
+        sample_weight_param,
+        SWFC_loss_param,
+        HGR_loss_param,
+        CE_loss_param,
+        aux_loss_param,
+        cmcl_loss_param,
+        cmcl_temp_param,
+        meld_label_smoothing,
+        use_graph_mtl,
+        gnn_alpha,
+        gnn_edge_mode,
+        graph_emotion_loss_param,
+        identity_loss_param,
+        adv_identity_loss_param,
+        ortho_loss_param,
+        grl_lambda,
+        multi_attn_flag,
+        device
+    ):
+        self.dataset = dataset
+        self.batch_size = batch_size
+        self.num_epochs = num_epochs
+        self.learning_rate = learning_rate
+        self.weight_decay = weight_decay
+        self.num_layers = num_layers
+        self.model_dim = model_dim
+        self.num_heads = num_heads
+        self.hidden_dim = hidden_dim
+        self.dropout_rate = dropout_rate
+        self.dropout_rec = dropout_rec
+
+        self.temp_param = temp_param
+        self.focus_param = focus_param
+        self.sample_weight_param = sample_weight_param
+
+        self.SWFC_loss_param = SWFC_loss_param
+        self.HGR_loss_param = HGR_loss_param
+        self.CE_loss_param = CE_loss_param
+        self.aux_loss_param = aux_loss_param
+
+        self.cmcl_loss_param = cmcl_loss_param
+        self.cmcl_temp_param = cmcl_temp_param
+        self.meld_label_smoothing = meld_label_smoothing
+
+        self.use_graph_mtl = bool(use_graph_mtl)
+        self.gnn_alpha = gnn_alpha
+        self.gnn_edge_mode = gnn_edge_mode
+
+        self.graph_emotion_loss_param = graph_emotion_loss_param
+        self.identity_loss_param = identity_loss_param
+        self.adv_identity_loss_param = adv_identity_loss_param
+        self.ortho_loss_param = ortho_loss_param
+        self.grl_lambda = grl_lambda
+
+        self.multi_attn_flag = multi_attn_flag
+        self.device = device
+
+        self.best_test_f1 = 0.0
+        self.best_epoch = 1
+        self.best_test_report = None
+
+        self.get_dataloader()
+        self.get_model()
+        self.get_loss()
+        self.get_optimizer()
+
+    def get_train_valid_sampler(self, train_dataset, valid=0.1):
+        size = len(train_dataset)
+        idx = list(range(size))
+        split = int(valid * size)
+        np.random.shuffle(idx)
+
+        return SubsetRandomSampler(idx[split:]), SubsetRandomSampler(idx[:split])
+
+    def get_dataloader(self, valid=0.1):
+        if self.dataset == 'IEMOCAP':
+            train_dataset = IEMOCAPDataset(train=True)
+            test_dataset = IEMOCAPDataset(train=False)
+
+        elif self.dataset == 'MELD':
+            train_dataset = MELDDataset(train=True)
+            test_dataset = MELDDataset(train=False)
+
+        else:
+            raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
+
+        train_sampler, valid_sampler = self.get_train_valid_sampler(
+            train_dataset,
+            valid
+        )
+
+        self.train_dataloader = DataLoader(
+            dataset=train_dataset,
+            batch_size=self.batch_size,
+            sampler=train_sampler,
+            collate_fn=train_dataset.collate_fn,
+            num_workers=0
+        )
+
+        self.valid_dataloader = DataLoader(
+            dataset=train_dataset,
+            batch_size=self.batch_size,
+            sampler=valid_sampler,
+            collate_fn=train_dataset.collate_fn,
+            num_workers=0
+        )
+
+        self.test_dataloader = DataLoader(
+            dataset=test_dataset,
+            batch_size=self.batch_size,
+            collate_fn=test_dataset.collate_fn,
+            shuffle=False,
+            num_workers=0
+        )
+
+    def get_class_counts(self):
+        class_counts = torch.zeros(self.num_classes).to(self.device)
+
+        for _, data in enumerate(self.train_dataloader):
+            _, _, _, _, _, padded_labels = [
+                d.to(self.device) for d in data
+            ]
+
+            padded_labels = padded_labels.reshape(-1)
+            labels = padded_labels[padded_labels != -1]
+
+            class_counts += torch.bincount(
+                labels,
+                minlength=self.num_classes
+            )
+
+        return class_counts
+
+    def get_model(self):
+        if self.dataset == 'IEMOCAP':
+            self.num_classes = 6
+            self.n_speakers = 2
+
+        elif self.dataset == 'MELD':
+            self.num_classes = 7
+            self.n_speakers = 9
+
+        else:
+            raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
+
+        roberta_dim = 768
+        D_m_audio = 512
+        D_m_visual = 1000
+
+        listener_state = False
+
+        D_e = self.model_dim
+        D_p = self.model_dim
+        D_g = self.model_dim
+        D_h = self.model_dim
+        D_a = self.model_dim
+
+        context_attention = 'simple'
+
+        self.model = MultiEMO(
+            self.dataset,
+            self.multi_attn_flag,
+            roberta_dim,
+            self.hidden_dim,
+            self.dropout_rate,
+            self.num_layers,
+            self.model_dim,
+            self.num_heads,
+            D_m_audio,
+            D_m_visual,
+            D_g,
+            D_p,
+            D_e,
+            D_h,
+            self.num_classes,
+            self.n_speakers,
+            listener_state,
+            context_attention,
+            D_a,
+            self.dropout_rec,
+            self.device
+        ).to(self.device)
+
+        self.graph_mtl = GraphMultiTaskGNN(
+            input_dim=self.model_dim,
+            num_emotions=self.num_classes,
+            num_speakers=self.n_speakers,
+            dropout=self.dropout_rate,
+            grl_lambda=self.grl_lambda
+        ).to(self.device)
+
+    def get_loss(self):
+        class_counts = self.get_class_counts()
+
+        self.SWFC_loss = SampleWeightedFocalContrastiveLoss(
+            self.temp_param,
+            self.focus_param,
+            self.sample_weight_param,
+            self.dataset,
+            class_counts,
+            self.device
+        )
+
+        self.HGR_loss = SoftHGRLoss()
+
+        if self.dataset == 'MELD':
+            self.CE_loss = nn.CrossEntropyLoss(
+                label_smoothing=self.meld_label_smoothing
+            )
+
+        elif self.dataset == 'IEMOCAP':
+            self.CE_loss = nn.CrossEntropyLoss()
+
+        else:
+            raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
+
+        self.Identity_CE_loss = nn.CrossEntropyLoss()
+
+        if self.dataset == 'MELD':
+            self.CMCL_loss = CrossModalContrastiveLoss(
+                temperature=self.cmcl_temp_param
+            ).to(self.device)
+
+        elif self.dataset == 'IEMOCAP':
+            self.CMCL_loss = None
+
+        else:
+            raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
+
+    def get_optimizer(self):
+        if self.use_graph_mtl:
+            params = (
+                list(self.model.parameters())
+                + list(self.graph_mtl.parameters())
+            )
+        else:
+            params = self.model.parameters()
+
+        self.optimizer = optim.Adam(
+            params,
+            lr=self.learning_rate,
+            weight_decay=self.weight_decay
+        )
+
+        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            self.optimizer,
+            factor=0.95,
+            patience=10,
+            threshold=1e-6,
+            verbose=True
+        )
+
+    def get_speaker_ids_2d(self, padded_speaker_masks, padded_labels_2d):
+        if len(padded_labels_2d.shape) != 2:
+            raise ValueError("padded_labels should have shape [B, L]")
+
+        B, L = padded_labels_2d.shape
+
+        if padded_speaker_masks.dim() == 3:
+            if (
+                padded_speaker_masks.size(0) == B
+                and padded_speaker_masks.size(1) == L
+            ):
+                speaker_ids = torch.argmax(
+                    padded_speaker_masks,
+                    dim=-1
+                )
+
+            elif (
+                padded_speaker_masks.size(0) == L
+                and padded_speaker_masks.size(1) == B
+            ):
+                speaker_ids = torch.argmax(
+                    padded_speaker_masks,
+                    dim=-1
+                ).transpose(0, 1)
+
+            else:
+                raise ValueError(
+                    "padded_speaker_masks shape does not match padded_labels"
+                )
+
+        elif padded_speaker_masks.dim() == 2:
+            if (
+                padded_speaker_masks.size(0) == B
+                and padded_speaker_masks.size(1) == L
+            ):
+                speaker_ids = padded_speaker_masks.long()
+
+            elif (
+                padded_speaker_masks.size(0) == L
+                and padded_speaker_masks.size(1) == B
+            ):
+                speaker_ids = padded_speaker_masks.transpose(0, 1).long()
+
+            else:
+                raise ValueError(
+                    "padded_speaker_masks shape does not match padded_labels"
+                )
+
+        else:
+            raise ValueError("Unsupported padded_speaker_masks shape")
+
+        return speaker_ids.long()
+
+    def get_effective_gnn_edge_mode(self):
+        if self.gnn_edge_mode == 'auto':
+            if self.dataset == 'IEMOCAP':
+                return 'speaker_temporal'
+
+            elif self.dataset == 'MELD':
+                return 'temporal'
+
+            else:
+                raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
+
+        return self.gnn_edge_mode
+
+    def build_dialogue_graph_adj(
+        self,
+        speaker_ids_2d,
+        padded_labels_2d
+    ):
+        B, L = padded_labels_2d.shape
+        device = padded_labels_2d.device
+
+        valid = padded_labels_2d != -1
+        valid_pair = valid.unsqueeze(2) & valid.unsqueeze(1)
+
+        same_speaker = speaker_ids_2d.unsqueeze(2).eq(
+            speaker_ids_2d.unsqueeze(1)
+        )
+
+        speaker_edge = same_speaker & valid_pair
+
+        position_ids = torch.arange(
+            L,
+            device=device
+        )
+
+        position_distance = torch.abs(
+            position_ids.unsqueeze(0)
+            - position_ids.unsqueeze(1)
+        )
+
+        temporal_edge = (
+            position_distance <= 1
+        ).unsqueeze(0).expand(B, L, L)
+
+        temporal_edge = temporal_edge & valid_pair
+
+        self_loop = torch.eye(
+            L,
+            device=device,
+            dtype=torch.bool
+        ).unsqueeze(0).expand(B, L, L)
+
+        self_loop = self_loop & valid_pair
+
+        edge_mode = self.get_effective_gnn_edge_mode()
+
+        if edge_mode == 'speaker_temporal':
+            adj = temporal_edge | speaker_edge | self_loop
+
+        elif edge_mode == 'temporal':
+            adj = temporal_edge | self_loop
+
+        elif edge_mode == 'speaker':
+            adj = speaker_edge | self_loop
+
+        else:
+            raise ValueError(
+                "gnn_edge_mode must be one of: auto, speaker_temporal, temporal, speaker"
+            )
+
+        adj = adj.float()
+
+        deg = adj.sum(
+            dim=-1,
+            keepdim=True
+        ).clamp_min(1.0)
+
+        adj = adj / deg
+
+        return adj
+
+    def orthogonal_loss(
+        self,
+        emotion_feature,
+        identity_feature
+    ):
+        emotion_feature = F.normalize(
+            emotion_feature,
+            dim=-1
+        )
+
+        identity_feature = F.normalize(
+            identity_feature,
+            dim=-1
+        )
+
+        loss = torch.mean(
+            torch.sum(
+                emotion_feature * identity_feature,
+                dim=-1
+            ) ** 2
+        )
+
+        return loss
+
+    def train_or_eval_model_per_epoch(self, dataloader, train=True):
+        if train:
+            self.model.train()
+            if self.use_graph_mtl:
+                self.graph_mtl.train()
+        else:
+            self.model.eval()
+            if self.use_graph_mtl:
+                self.graph_mtl.eval()
+
+        total_loss = 0.0
+        total_SWFC_loss = 0.0
+        total_HGR_loss = 0.0
+        total_CE_loss = 0.0
+        total_AUX_loss = 0.0
+        total_CMCL_loss = 0.0
+        total_GRAPH_EMO_loss = 0.0
+        total_ID_loss = 0.0
+        total_ADV_ID_loss = 0.0
+        total_ORTHO_loss = 0.0
+
+        all_labels = []
+        all_preds = []
+
+        for _, data in enumerate(dataloader):
+            if train:
+                self.optimizer.zero_grad(set_to_none=True)
+
+            (
+                padded_texts,
+                padded_audios,
+                padded_visuals,
+                padded_speaker_masks,
+                padded_utterance_masks,
+                padded_labels
+            ) = [
+                d.to(self.device) for d in data
+            ]
+
+            padded_labels_2d = padded_labels
+            padded_labels_flat = padded_labels_2d.reshape(-1)
+            valid_mask_flat = padded_labels_flat != -1
+            labels = padded_labels_flat[valid_mask_flat]
+
+            (
+                fused_text_features,
+                fused_audio_features,
+                fused_visual_features,
+                fc_outputs,
+                mlp_outputs,
+                text_aux_outputs,
+                audio_aux_outputs,
+                visual_aux_outputs
+            ) = self.model(
+                padded_texts,
+                padded_audios,
+                padded_visuals,
+                padded_speaker_masks,
+                padded_utterance_masks,
+                padded_labels_flat
+            )
+
+            soft_HGR_loss = self.HGR_loss(
+                fused_text_features,
+                fused_audio_features,
+                fused_visual_features
+            )
+
+            SWFC_loss = self.SWFC_loss(
+                fc_outputs,
+                labels
+            )
+
+            zero = fc_outputs.new_tensor(0.0)
+
+            graph_emotion_loss = zero
+            identity_loss = zero
+            adv_identity_loss = zero
+            ortho_loss = zero
+
+            if self.use_graph_mtl:
+                speaker_ids_2d = self.get_speaker_ids_2d(
+                    padded_speaker_masks,
+                    padded_labels_2d
+                )
+
+                speaker_labels = speaker_ids_2d.reshape(-1)[
+                    valid_mask_flat
+                ]
+
+                adj = self.build_dialogue_graph_adj(
+                    speaker_ids_2d,
+                    padded_labels_2d
+                )
+
+                B, L = padded_labels_2d.shape
+                D = fc_outputs.size(-1)
+
+                padded_fc_outputs = fc_outputs.new_zeros(
+                    B,
+                    L,
+                    D
+                )
+
+                valid_mask_2d = padded_labels_2d != -1
+                padded_fc_outputs[valid_mask_2d] = fc_outputs
+
+                (
+                    gnn_delta,
+                    graph_emotion_logits,
+                    identity_logits,
+                    adv_identity_logits,
+                    emotion_feature,
+                    identity_feature
+                ) = self.graph_mtl(
+                    padded_fc_outputs,
+                    adj,
+                    valid_mask_2d
+                )
+
+                refined_fc_outputs = (
+                    fc_outputs
+                    + self.gnn_alpha * gnn_delta
+                )
+
+                emotion_logits = self.model.mlp(
+                    refined_fc_outputs
+                )
+
+                CE_loss = self.CE_loss(
+                    emotion_logits,
+                    labels
+                )
+
+                graph_emotion_loss = self.CE_loss(
+                    graph_emotion_logits,
+                    labels
+                )
+
+                # Identity branch learns speaker information.
+                identity_loss = self.Identity_CE_loss(
+                    identity_logits,
+                    speaker_labels
+                )
+
+                # Adversarial identity loss removes speaker information
+                # from emotion_feature through GRL.
+                adv_identity_loss = self.Identity_CE_loss(
+                    adv_identity_logits,
+                    speaker_labels
+                )
+
+                # Orthogonal constraint further separates emotion and identity.
+                ortho_loss = self.orthogonal_loss(
+                    emotion_feature,
+                    identity_feature
+                )
+
+            else:
+                emotion_logits = mlp_outputs
+
+                CE_loss = self.CE_loss(
+                    emotion_logits,
+                    labels
+                )
+
+            if self.dataset == 'IEMOCAP':
+                text_CE_loss = self.CE_loss(
+                    text_aux_outputs,
+                    labels
+                )
+
+                audio_CE_loss = self.CE_loss(
+                    audio_aux_outputs,
+                    labels
+                )
+
+                visual_CE_loss = self.CE_loss(
+                    visual_aux_outputs,
+                    labels
+                )
+
+                AUX_loss = (
+                    text_CE_loss
+                    + audio_CE_loss
+                    + visual_CE_loss
+                ) / 3.0
+
+            elif self.dataset == 'MELD':
+                AUX_loss = emotion_logits.new_tensor(0.0)
+
+            else:
+                raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
+
+            if self.dataset == 'MELD':
+                CMCL_loss = self.CMCL_loss(
+                    fused_text_features,
+                    fused_audio_features,
+                    fused_visual_features
+                )
+
+            elif self.dataset == 'IEMOCAP':
+                CMCL_loss = emotion_logits.new_tensor(0.0)
+
+            else:
+                raise ValueError("dataset must be either 'MELD' or 'IEMOCAP'")
+
+            loss = (
+                soft_HGR_loss * self.HGR_loss_param
+                + SWFC_loss * self.SWFC_loss_param
+                + CE_loss * self.CE_loss_param
+                + AUX_loss * self.aux_loss_param
+                + CMCL_loss * self.cmcl_loss_param
+                + graph_emotion_loss * self.graph_emotion_loss_param
+                + identity_loss * self.identity_loss_param
+                + adv_identity_loss * self.adv_identity_loss_param
+                + ortho_loss * self.ortho_loss_param
+            )
+
+            total_loss += loss.item()
+            total_HGR_loss += soft_HGR_loss.item()
+            total_SWFC_loss += SWFC_loss.item()
+            total_CE_loss += CE_loss.item()
+            total_AUX_loss += AUX_loss.item()
+            total_CMCL_loss += CMCL_loss.item()
+            total_GRAPH_EMO_loss += graph_emotion_loss.item()
+            total_ID_loss += identity_loss.item()
+            total_ADV_ID_loss += adv_identity_loss.item()
+            total_ORTHO_loss += ortho_loss.item()
+
+            if train:
+                loss.backward()
+                self.optimizer.step()
+
+            preds = torch.argmax(
+                emotion_logits,
+                dim=-1
+            )
+
+            all_labels.append(
+                labels.cpu().numpy()
+            )
+
+            all_preds.append(
+                preds.cpu().numpy()
+            )
+
+        all_labels = np.concatenate(all_labels)
+        all_preds = np.concatenate(all_preds)
+
+        avg_f1 = round(
+            f1_score(
+                all_labels,
+                all_preds,
+                average='weighted'
+            ) * 100,
+            4
+        )
+
+        avg_acc = round(
+            accuracy_score(
+                all_labels,
+                all_preds
+            ) * 100,
+            4
+        )
+
+        report = classification_report(
+            all_labels,
+            all_preds,
+            digits=4
+        )
+
+        return (
+            round(total_loss, 4),
+            round(total_HGR_loss, 4),
+            round(total_SWFC_loss, 4),
+            round(total_CE_loss, 4),
+            round(total_AUX_loss, 4),
+            round(total_CMCL_loss, 4),
+            round(total_GRAPH_EMO_loss, 4),
+            round(total_ID_loss, 4),
+            round(total_ADV_ID_loss, 4),
+            round(total_ORTHO_loss, 4),
+            avg_f1,
+            avg_acc,
+            report
+        )
+
+    def train_or_eval_linear_model(self):
+        checkpoint_dir = os.path.join(
+            'Checkpoints',
+            self.dataset
+        )
+
+        os.makedirs(
+            checkpoint_dir,
+            exist_ok=True
+        )
+
+        checkpoint_path = os.path.join(
+            checkpoint_dir,
+            'best_disentangle_checkpoint.pt'
+        )
+
+        for e in range(self.num_epochs):
+            (
+                train_loss,
+                train_HGR_loss,
+                train_SWFC_loss,
+                train_CE_loss,
+                train_AUX_loss,
+                train_CMCL_loss,
+                train_GRAPH_EMO_loss,
+                train_ID_loss,
+                train_ADV_ID_loss,
+                train_ORTHO_loss,
+                train_f1,
+                train_acc,
+                _
+            ) = self.train_or_eval_model_per_epoch(
+                self.train_dataloader,
+                train=True
+            )
+
+            with torch.no_grad():
+                (
+                    valid_loss,
+                    valid_HGR_loss,
+                    valid_SWFC_loss,
+                    valid_CE_loss,
+                    valid_AUX_loss,
+                    valid_CMCL_loss,
+                    valid_GRAPH_EMO_loss,
+                    valid_ID_loss,
+                    valid_ADV_ID_loss,
+                    valid_ORTHO_loss,
+                    valid_f1,
+                    valid_acc,
+                    _
+                ) = self.train_or_eval_model_per_epoch(
+                    self.valid_dataloader,
+                    train=False
+                )
+
+                (
+                    test_loss,
+                    test_HGR_loss,
+                    test_SWFC_loss,
+                    test_CE_loss,
+                    test_AUX_loss,
+                    test_CMCL_loss,
+                    test_GRAPH_EMO_loss,
+                    test_ID_loss,
+                    test_ADV_ID_loss,
+                    test_ORTHO_loss,
+                    test_f1,
+                    test_acc,
+                    test_report
+                ) = self.train_or_eval_model_per_epoch(
+                    self.test_dataloader,
+                    train=False
+                )
+
+            print(
+                'Epoch {}, train loss: {}, train HGR loss: {}, train SWFC loss: {}, train CE loss: {}, train AUX loss: {}, train CMCL loss: {}, train GraphEmo loss: {}, train ID loss: {}, train AdvID loss: {}, train ORTHO loss: {}, train f1: {}, train acc: {}'.format(
+                    e + 1,
+                    train_loss,
+                    train_HGR_loss,
+                    train_SWFC_loss,
+                    train_CE_loss,
+                    train_AUX_loss,
+                    train_CMCL_loss,
+                    train_GRAPH_EMO_loss,
+                    train_ID_loss,
+                    train_ADV_ID_loss,
+                    train_ORTHO_loss,
+                    train_f1,
+                    train_acc
+                )
+            )
+
+            print(
+                'Epoch {}, valid loss: {}, valid HGR loss: {}, valid SWFC loss: {}, valid CE loss: {}, valid AUX loss: {}, valid CMCL loss: {}, valid GraphEmo loss: {}, valid ID loss: {}, valid AdvID loss: {}, valid ORTHO loss: {}, valid f1: {}, valid acc: {}'.format(
+                    e + 1,
+                    valid_loss,
+                    valid_HGR_loss,
+                    valid_SWFC_loss,
+                    valid_CE_loss,
+                    valid_AUX_loss,
+                    valid_CMCL_loss,
+                    valid_GRAPH_EMO_loss,
+                    valid_ID_loss,
+                    valid_ADV_ID_loss,
+                    valid_ORTHO_loss,
+                    valid_f1,
+                    valid_acc
+                )
+            )
+
+            print(
+                'Epoch {}, test loss: {}, test HGR loss: {}, test SWFC loss: {}, test CE loss: {}, test AUX loss: {}, test CMCL loss: {}, test GraphEmo loss: {}, test ID loss: {}, test AdvID loss: {}, test ORTHO loss: {}, test f1: {}, test acc: {}, '.format(
+                    e + 1,
+                    test_loss,
+                    test_HGR_loss,
+                    test_SWFC_loss,
+                    test_CE_loss,
+                    test_AUX_loss,
+                    test_CMCL_loss,
+                    test_GRAPH_EMO_loss,
+                    test_ID_loss,
+                    test_ADV_ID_loss,
+                    test_ORTHO_loss,
+                    test_f1,
+                    test_acc
+                )
+            )
+
+            self.scheduler.step(valid_loss)
+
+            if test_f1 >= self.best_test_f1:
+                self.best_test_f1 = test_f1
+                self.best_epoch = e + 1
+                self.best_test_report = test_report
+
+                checkpoint = {
+                    'dataset': self.dataset,
+                    'best_test_f1': self.best_test_f1,
+                    'best_epoch': self.best_epoch,
+                    'model_state_dict': self.model.state_dict(),
+                    'graph_mtl_state_dict': self.graph_mtl.state_dict(),
+                    'config': {
+                        'dataset': self.dataset,
+                        'batch_size': self.batch_size,
+                        'num_epochs': self.num_epochs,
+                        'learning_rate': self.learning_rate,
+                        'weight_decay': self.weight_decay,
+                        'num_layers': self.num_layers,
+                        'model_dim': self.model_dim,
+                        'num_heads': self.num_heads,
+                        'hidden_dim': self.hidden_dim,
+                        'dropout_rate': self.dropout_rate,
+                        'dropout_rec': self.dropout_rec,
+                        'temp_param': self.temp_param,
+                        'focus_param': self.focus_param,
+                        'sample_weight_param': self.sample_weight_param,
+                        'SWFC_loss_param': self.SWFC_loss_param,
+                        'HGR_loss_param': self.HGR_loss_param,
+                        'CE_loss_param': self.CE_loss_param,
+                        'aux_loss_param': self.aux_loss_param,
+                        'cmcl_loss_param': self.cmcl_loss_param,
+                        'cmcl_temp_param': self.cmcl_temp_param,
+                        'meld_label_smoothing': self.meld_label_smoothing,
+                        'use_graph_mtl': self.use_graph_mtl,
+                        'gnn_alpha': self.gnn_alpha,
+                        'gnn_edge_mode': self.gnn_edge_mode,
+                        'graph_emotion_loss_param': self.graph_emotion_loss_param,
+                        'identity_loss_param': self.identity_loss_param,
+                        'adv_identity_loss_param': self.adv_identity_loss_param,
+                        'ortho_loss_param': self.ortho_loss_param,
+                        'grl_lambda': self.grl_lambda,
+                        'multi_attn_flag': self.multi_attn_flag
+                    }
+                }
+
+                torch.save(
+                    checkpoint,
+                    checkpoint_path
+                )
+
+                print(
+                    'Saved best checkpoint to {}'.format(
+                        checkpoint_path
+                    )
+                )
+
+        print(
+            'Best test f1: {} at epoch {}'.format(
+                self.best_test_f1,
+                self.best_epoch
+            )
+        )
+
+        print(
+            'Best checkpoint path: {}'.format(
+                checkpoint_path
+            )
+        )
+
+        print(self.best_test_report)
+
+
+def get_args():
+    parser = OptionParser()
+
+    parser.add_option('--dataset', dest='dataset', default='MELD', type='str')
+    parser.add_option('--batch_size', dest='batch_size', default=64, type='int')
+    parser.add_option('--num_epochs', dest='num_epochs', default=100, type='int')
+    parser.add_option('--learning_rate', dest='learning_rate', default=0.0001, type='float')
+    parser.add_option('--weight_decay', dest='weight_decay', default=0.00001, type='float')
+    parser.add_option('--num_layers', dest='num_layers', default=6, type='int')
+    parser.add_option('--model_dim', dest='model_dim', default=256, type='int')
+    parser.add_option('--num_heads', dest='num_heads', default=4, type='int')
+    parser.add_option('--hidden_dim', dest='hidden_dim', default=1024, type='int')
+    parser.add_option('--dropout_rate', dest='dropout_rate', default=0.1, type='float')
+    parser.add_option('--dropout_rec', dest='dropout_rec', default=0.1, type='float')
+    parser.add_option('--temp_param', dest='temp_param', default=0.8, type='float')
+    parser.add_option('--focus_param', dest='focus_param', default=2.0, type='float')
+    parser.add_option('--sample_weight_param', dest='sample_weight_param', default=0.8, type='float')
+    parser.add_option('--SWFC_loss_param', dest='SWFC_loss_param', default=0.4, type='float')
+    parser.add_option('--HGR_loss_param', dest='HGR_loss_param', default=0.3, type='float')
+    parser.add_option('--CE_loss_param', dest='CE_loss_param', default=0.3, type='float')
+    parser.add_option('--aux_loss_param', dest='aux_loss_param', default=0.2, type='float')
+    parser.add_option('--cmcl_loss_param', dest='cmcl_loss_param', default=0.0, type='float')
+    parser.add_option('--cmcl_temp_param', dest='cmcl_temp_param', default=0.5, type='float')
+    parser.add_option('--meld_label_smoothing', dest='meld_label_smoothing', default=0.05, type='float')
+
+    parser.add_option('--use_graph_mtl', dest='use_graph_mtl', default=0, type='int')
+    parser.add_option('--use_gnn', dest='use_gnn', default=None, type='int')
+
+    parser.add_option('--gnn_alpha', dest='gnn_alpha', default=0.1, type='float')
+    parser.add_option('--gnn_edge_mode', dest='gnn_edge_mode', default='auto', type='str')
+
+    parser.add_option('--graph_emotion_loss_param', dest='graph_emotion_loss_param', default=0.01, type='float')
+    parser.add_option('--identity_loss_param', dest='identity_loss_param', default=0.01, type='float')
+    parser.add_option('--adv_identity_loss_param', dest='adv_identity_loss_param', default=0.005, type='float')
+    parser.add_option('--ortho_loss_param', dest='ortho_loss_param', default=0.001, type='float')
+    parser.add_option('--grl_lambda', dest='grl_lambda', default=1.0, type='float')
+
+    parser.add_option('--multi_attn_flag', dest='multi_attn_flag', default=True)
+    parser.add_option('--seed', dest='seed', default=2023, type='int')
+
+    (options, _) = parser.parse_args()
+
+    return options
+
+
+def set_seed(seed):
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+if __name__ == '__main__':
+    args = get_args()
+
+    device = torch.device(
+        'cuda' if torch.cuda.is_available() else 'cpu'
+    )
+
+    set_seed(args.seed)
+
+    if args.use_gnn is not None:
+        use_graph_mtl = args.use_gnn
+    else:
+        use_graph_mtl = args.use_graph_mtl
+
+    multiemo_train = TrainMultiEMO(
+        args.dataset,
+        args.batch_size,
+        args.num_epochs,
+        args.learning_rate,
+        args.weight_decay,
+        args.num_layers,
+        args.model_dim,
+        args.num_heads,
+        args.hidden_dim,
+        args.dropout_rate,
+        args.dropout_rec,
+        args.temp_param,
+        args.focus_param,
+        args.sample_weight_param,
+        args.SWFC_loss_param,
+        args.HGR_loss_param,
+        args.CE_loss_param,
+        args.aux_loss_param,
+        args.cmcl_loss_param,
+        args.cmcl_temp_param,
+        args.meld_label_smoothing,
+        use_graph_mtl,
+        args.gnn_alpha,
+        args.gnn_edge_mode,
+        args.graph_emotion_loss_param,
+        args.identity_loss_param,
+        args.adv_identity_loss_param,
+        args.ortho_loss_param,
+        args.grl_lambda,
+        args.multi_attn_flag,
+        device
+    )
+
+    multiemo_train.train_or_eval_linear_model()

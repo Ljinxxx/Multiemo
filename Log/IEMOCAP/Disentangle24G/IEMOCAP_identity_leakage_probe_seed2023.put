@@ -1,0 +1,29 @@
+==========================================
+Loaded checkpoint: Checkpoints/IEMOCAP/best_disentangle_checkpoint_main_24G_seed2023.pt
+Dataset: IEMOCAP
+Best test f1: 72.9902
+Best epoch: 111
+==========================================
+Extracting train features...
+Extracting test features...
+==========================================
+Identity Leakage Probe Results
+==========================================
+Checkpoint: Checkpoints/IEMOCAP/best_disentangle_checkpoint_main_24G_seed2023.pt
+Dataset: IEMOCAP
+Checkpoint best test f1: 72.9902
+Checkpoint best epoch: 111
+
+Speaker majority baseline acc: 53.7277
+Emotion majority baseline acc: 23.6599
+
+Feature	SpeakerAcc	SpeakerMacroF1	EmotionAcc	EmotionMacroF1
+fc_features	48.1208	47.1765	72.1503	72.3261
+emotion_features	40.6654	40.6564	71.7190	71.9397
+identity_features	42.2674	42.2660	70.7332	70.8524
+
+Interpretation:
+1. If emotion_features SpeakerAcc is much lower than fc_features SpeakerAcc, identity leakage is reduced.
+2. If identity_features SpeakerAcc is high, identity branch successfully captures speaker information.
+3. Good disentanglement means: emotion_features low SpeakerAcc + identity_features high SpeakerAcc + emotion_features keep reasonable EmotionAcc.
+Saved probe result to Log/Summary/IEMOCAP_identity_leakage_probe_24G.txt

@@ -1,0 +1,695 @@
+Epoch 1, train loss: 6.1274, train HGR loss: 3.9824, train SWFC loss: 2.3865, train CE loss: 9.5491, train f1: 30.6651, train acc: 37.8711
+Epoch 1, valid loss: 0.8435, valid HGR loss: 0.4685, valid SWFC loss: 0.3534, valid CE loss: 1.3106, valid f1: 34.6513, valid acc: 49.5595
+Epoch 1, test loss: 1.7037, test HGR loss: 1.2983, test SWFC loss: 0.7057, test CE loss: 2.5832, test f1: 35.2553, test acc: 49.9617, 
+              precision    recall  f1-score   support
+
+           0     0.4935    1.0000    0.6609      1256
+           1     0.6923    0.0320    0.0612       281
+           2     0.0000    0.0000    0.0000        50
+           3     0.0000    0.0000    0.0000       208
+           4     0.8276    0.0597    0.1114       402
+           5     0.0000    0.0000    0.0000        68
+           6     0.6522    0.0435    0.0815       345
+
+    accuracy                         0.4996      2610
+   macro avg     0.3808    0.1622    0.1307      2610
+weighted avg     0.5257    0.4996    0.3526      2610
+
+Epoch 2, train loss: 4.8912, train HGR loss: 2.2383, train SWFC loss: 2.3622, train CE loss: 7.4449, train f1: 53.0035, train acc: 58.2958
+Epoch 2, valid loss: 0.7014, valid HGR loss: 0.0329, valid SWFC loss: 0.3521, valid CE loss: 1.1146, valid f1: 60.9904, valid acc: 66.2996
+Epoch 2, test loss: 1.4582, test HGR loss: 0.5442, test SWFC loss: 0.7035, test CE loss: 2.2447, test f1: 59.1782, test acc: 64.4828, 
+              precision    recall  f1-score   support
+
+           0     0.6871    0.9212    0.7871      1256
+           1     0.5755    0.5018    0.5361       281
+           2     0.0000    0.0000    0.0000        50
+           3     0.8333    0.0240    0.0467       208
+           4     0.5941    0.6045    0.5993       402
+           5     0.0000    0.0000    0.0000        68
+           6     0.5150    0.3971    0.4484       345
+
+    accuracy                         0.6448      2610
+   macro avg     0.4579    0.3498    0.3454      2610
+weighted avg     0.6186    0.6448    0.5918      2610
+
+Epoch 3, train loss: 4.2715, train HGR loss: 1.046, train SWFC loss: 2.3462, train CE loss: 6.4568, train f1: 62.3889, train acc: 65.4453
+Epoch 3, valid loss: 0.6521, valid HGR loss: -0.0679, valid SWFC loss: 0.351, valid CE loss: 1.0371, valid f1: 66.0676, valid acc: 69.6035
+Epoch 3, test loss: 1.3652, test HGR loss: 0.2946, test SWFC loss: 0.7019, test CE loss: 2.1099, test f1: 61.8383, test acc: 64.751, 
+              precision    recall  f1-score   support
+
+           0     0.7477    0.8495    0.7954      1256
+           1     0.4837    0.5801    0.5275       281
+           2     0.0000    0.0000    0.0000        50
+           3     0.6596    0.1490    0.2431       208
+           4     0.6225    0.6318    0.6272       402
+           5     0.0000    0.0000    0.0000        68
+           6     0.4476    0.5072    0.4755       345
+
+    accuracy                         0.6475      2610
+   macro avg     0.4230    0.3882    0.3812      2610
+weighted avg     0.6195    0.6475    0.6184      2610
+
+Epoch 4, train loss: 3.9665, train HGR loss: 0.6209, train SWFC loss: 2.3397, train CE loss: 5.937, train f1: 65.3229, train acc: 67.7283
+Epoch 4, valid loss: 0.6297, valid HGR loss: -0.1256, valid SWFC loss: 0.3504, valid CE loss: 1.0042, valid f1: 64.9712, valid acc: 67.8414
+Epoch 4, test loss: 1.3258, test HGR loss: 0.1764, test SWFC loss: 0.7012, test CE loss: 2.0553, test f1: 63.5809, test acc: 65.7088, 
+              precision    recall  f1-score   support
+
+           0     0.7658    0.8304    0.7968      1256
+           1     0.5175    0.5801    0.5470       281
+           2     0.0000    0.0000    0.0000        50
+           3     0.5957    0.2692    0.3709       208
+           4     0.6056    0.6493    0.6267       402
+           5     0.0000    0.0000    0.0000        68
+           6     0.4706    0.5565    0.5100       345
+
+    accuracy                         0.6571      2610
+   macro avg     0.4222    0.4122    0.4073      2610
+weighted avg     0.6272    0.6571    0.6358      2610
+
+Epoch 5, train loss: 3.7954, train HGR loss: 0.3717, train SWFC loss: 2.3287, train CE loss: 5.6535, train f1: 67.2446, train acc: 69.1939
+Epoch 5, valid loss: 0.6145, valid HGR loss: -0.2016, valid SWFC loss: 0.3499, valid CE loss: 0.9894, valid f1: 65.6693, valid acc: 68.2819
+Epoch 5, test loss: 1.3078, test HGR loss: 0.0668, test SWFC loss: 0.7008, test CE loss: 2.0416, test f1: 63.4809, test acc: 65.249, 
+              precision    recall  f1-score   support
+
+           0     0.7698    0.8145    0.7915      1256
+           1     0.4944    0.6299    0.5540       281
+           2     0.0000    0.0000    0.0000        50
+           3     0.5317    0.3221    0.4012       208
+           4     0.6199    0.6045    0.6121       402
+           5     0.0000    0.0000    0.0000        68
+           6     0.4765    0.5594    0.5147       345
+
+    accuracy                         0.6525      2610
+   macro avg     0.4132    0.4186    0.4105      2610
+weighted avg     0.6245    0.6525    0.6348      2610
+
+Epoch 6, train loss: 3.707, train HGR loss: 0.2187, train SWFC loss: 2.3336, train CE loss: 5.5034, train f1: 67.7766, train acc: 69.6918
+Epoch 6, valid loss: 0.5955, valid HGR loss: -0.2695, valid SWFC loss: 0.3497, valid CE loss: 0.9652, valid f1: 65.6213, valid acc: 68.0617
+Epoch 6, test loss: 1.2975, test HGR loss: -0.0024, test SWFC loss: 0.7009, test CE loss: 2.0348, test f1: 64.0682, test acc: 65.7471, 
+              precision    recall  f1-score   support
+
+           0     0.7805    0.8097    0.7948      1256
+           1     0.5085    0.6370    0.5656       281
+           2     0.0000    0.0000    0.0000        50
+           3     0.5426    0.3365    0.4154       208
+           4     0.6108    0.6443    0.6271       402
+           5     0.0000    0.0000    0.0000        68
+           6     0.4751    0.5536    0.5114       345
+
+    accuracy                         0.6575      2610
+   macro avg     0.4168    0.4259    0.4163      2610
+weighted avg     0.6305    0.6575    0.6407      2610
+
+Epoch 7, train loss: 3.636, train HGR loss: 0.0616, train SWFC loss: 2.3457, train CE loss: 5.3831, train f1: 68.7211, train acc: 70.5186
+Epoch 7, valid loss: 0.586, valid HGR loss: -0.3199, valid SWFC loss: 0.3495, valid CE loss: 0.9565, valid f1: 65.7951, valid acc: 68.2819
+Epoch 7, test loss: 1.2813, test HGR loss: -0.0625, test SWFC loss: 0.7008, test CE loss: 2.0145, test f1: 64.0056, test acc: 65.7854, 
+              precision    recall  f1-score   support
+
+           0     0.7646    0.8248    0.7936      1256
+           1     0.5329    0.6050    0.5667       281
+           2     0.0000    0.0000    0.0000        50
+           3     0.5248    0.3558    0.4241       208
+           4     0.6469    0.5970    0.6210       402
+           5     0.0000    0.0000    0.0000        68
+           6     0.4646    0.5710    0.5124       345
+
+    accuracy                         0.6579      2610
+   macro avg     0.4191    0.4219    0.4168      2610
+weighted avg     0.6282    0.6579    0.6401      2610
+
+Epoch 8, train loss: 3.5322, train HGR loss: -0.0629, train SWFC loss: 2.3395, train CE loss: 5.2053, train f1: 69.66, train acc: 71.4487
+Epoch 8, valid loss: 0.5757, valid HGR loss: -0.3527, valid SWFC loss: 0.3493, valid CE loss: 0.9424, valid f1: 66.1605, valid acc: 68.2819
+Epoch 8, test loss: 1.2703, test HGR loss: -0.1374, test SWFC loss: 0.7005, test CE loss: 2.0077, test f1: 64.3125, test acc: 65.7088, 
+              precision    recall  f1-score   support
+
+           0     0.7770    0.8018    0.7892      1256
+           1     0.5198    0.6548    0.5795       281
+           2     0.0000    0.0000    0.0000        50
+           3     0.4503    0.4135    0.4311       208
+           4     0.6277    0.6418    0.6347       402
+           5     0.4000    0.0294    0.0548        68
+           6     0.5042    0.5159    0.5100       345
+
+    accuracy                         0.6571      2610
+   macro avg     0.4684    0.4367    0.4285      2610
+weighted avg     0.6395    0.6571    0.6431      2610
+
+Epoch 9, train loss: 3.523, train HGR loss: -0.1365, train SWFC loss: 2.3336, train CE loss: 5.2064, train f1: 70.2342, train acc: 71.8433
+Epoch 9, valid loss: 0.5636, valid HGR loss: -0.3853, valid SWFC loss: 0.349, valid CE loss: 0.925, valid f1: 66.9269, valid acc: 68.2819
+Epoch 9, test loss: 1.2635, test HGR loss: -0.1609, test SWFC loss: 0.7001, test CE loss: 1.999, test f1: 64.892, test acc: 66.0536, 
+              precision    recall  f1-score   support
+
+           0     0.7842    0.7986    0.7913      1256
+           1     0.5307    0.6157    0.5700       281
+           2     0.1667    0.0200    0.0357        50
+           3     0.5282    0.3606    0.4286       208
+           4     0.6514    0.6368    0.6440       402
+           5     0.5000    0.0588    0.1053        68
+           6     0.4649    0.6145    0.5293       345
+
+    accuracy                         0.6605      2610
+   macro avg     0.5180    0.4436    0.4435      2610
+weighted avg     0.6546    0.6605    0.6489      2610
+
+Epoch 10, train loss: 3.4736, train HGR loss: -0.1919, train SWFC loss: 2.3403, train CE loss: 5.1133, train f1: 70.8448, train acc: 72.1909
+Epoch 10, valid loss: 0.5561, valid HGR loss: -0.4166, valid SWFC loss: 0.3492, valid CE loss: 0.9161, valid f1: 66.3383, valid acc: 67.8414
+Epoch 10, test loss: 1.2513, test HGR loss: -0.1854, test SWFC loss: 0.7004, test CE loss: 1.9794, test f1: 64.8732, test acc: 66.092, 
+              precision    recall  f1-score   support
+
+           0     0.7730    0.8105    0.7913      1256
+           1     0.5419    0.5979    0.5685       281
+           2     0.1250    0.0200    0.0345        50
+           3     0.5168    0.3702    0.4314       208
+           4     0.6604    0.6144    0.6366       402
+           5     0.4167    0.0735    0.1250        68
+           6     0.4750    0.6058    0.5325       345
+
+    accuracy                         0.6609      2610
+   macro avg     0.5013    0.4418    0.4457      2610
+weighted avg     0.6493    0.6609    0.6487      2610
+
+Epoch 11, train loss: 3.4022, train HGR loss: -0.2402, train SWFC loss: 2.3214, train CE loss: 4.9953, train f1: 71.6763, train acc: 72.7828
+Epoch 11, valid loss: 0.55, valid HGR loss: -0.4345, valid SWFC loss: 0.3489, valid CE loss: 0.9077, valid f1: 68.8816, valid acc: 69.8238
+Epoch 11, test loss: 1.256, test HGR loss: -0.2138, test SWFC loss: 0.7001, test CE loss: 1.9947, test f1: 64.5752, test acc: 65.3257, 
+              precision    recall  f1-score   support
+
+           0     0.7809    0.7890    0.7850      1256
+           1     0.5099    0.6441    0.5692       281
+           2     0.2308    0.0600    0.0952        50
+           3     0.5067    0.3654    0.4246       208
+           4     0.6704    0.6020    0.6343       402
+           5     0.3478    0.1176    0.1758        68
+           6     0.4647    0.5913    0.5204       345
+
+    accuracy                         0.6533      2610
+   macro avg     0.5016    0.4528    0.4578      2610
+weighted avg     0.6492    0.6533    0.6458      2610
+
+Epoch 12, train loss: 3.3873, train HGR loss: -0.2796, train SWFC loss: 2.3406, train CE loss: 4.9579, train f1: 71.8835, train acc: 72.8861
+Epoch 12, valid loss: 0.5453, valid HGR loss: -0.452, valid SWFC loss: 0.3494, valid CE loss: 0.9015, valid f1: 70.1923, valid acc: 71.3656
+Epoch 12, test loss: 1.2469, test HGR loss: -0.2466, test SWFC loss: 0.7007, test CE loss: 1.9826, test f1: 65.8339, test acc: 66.9732, 
+              precision    recall  f1-score   support
+
+           0     0.7663    0.8248    0.7945      1256
+           1     0.5410    0.6335    0.5836       281
+           2     0.2667    0.0800    0.1231        50
+           3     0.5175    0.3558    0.4217       208
+           4     0.6434    0.6418    0.6426       402
+           5     0.3750    0.1765    0.2400        68
+           6     0.5503    0.5391    0.5447       345
+
+    accuracy                         0.6697      2610
+   macro avg     0.5229    0.4645    0.4786      2610
+weighted avg     0.6550    0.6697    0.6583      2610
+
+Epoch 13, train loss: 3.3696, train HGR loss: -0.2937, train SWFC loss: 2.3472, train CE loss: 4.9202, train f1: 72.6248, train acc: 73.431
+Epoch 13, valid loss: 0.538, valid HGR loss: -0.4838, valid SWFC loss: 0.3492, valid CE loss: 0.8934, valid f1: 68.6314, valid acc: 69.8238
+Epoch 13, test loss: 1.2468, test HGR loss: -0.2618, test SWFC loss: 0.7006, test CE loss: 1.9855, test f1: 65.9847, test acc: 66.9732, 
+              precision    recall  f1-score   support
+
+           0     0.7688    0.8232    0.7951      1256
+           1     0.5548    0.5943    0.5739       281
+           2     0.3500    0.1400    0.2000        50
+           3     0.5245    0.3606    0.4274       208
+           4     0.6540    0.6443    0.6491       402
+           5     0.4138    0.1765    0.2474        68
+           6     0.5160    0.5623    0.5381       345
+
+    accuracy                         0.6697      2610
+   macro avg     0.5403    0.4716    0.4901      2610
+weighted avg     0.6579    0.6697    0.6598      2610
+
+Epoch 14, train loss: 3.35, train HGR loss: -0.3739, train SWFC loss: 2.3483, train CE loss: 4.8961, train f1: 72.7789, train acc: 73.6095
+Epoch 14, valid loss: 0.5305, valid HGR loss: -0.4971, valid SWFC loss: 0.3486, valid CE loss: 0.8815, valid f1: 68.7282, valid acc: 69.3833
+Epoch 14, test loss: 1.2606, test HGR loss: -0.276, test SWFC loss: 0.7002, test CE loss: 2.0162, test f1: 65.0548, test acc: 65.5939, 
+              precision    recall  f1-score   support
+
+           0     0.7813    0.7795    0.7804      1256
+           1     0.5411    0.6085    0.5729       281
+           2     0.3462    0.1800    0.2368        50
+           3     0.5267    0.3317    0.4071       208
+           4     0.6291    0.6667    0.6473       402
+           5     0.3171    0.1912    0.2385        68
+           6     0.4868    0.5884    0.5328       345
+
+    accuracy                         0.6559      2610
+   macro avg     0.5183    0.4780    0.4880      2610
+weighted avg     0.6524    0.6559    0.6505      2610
+
+Epoch 15, train loss: 3.2931, train HGR loss: -0.3816, train SWFC loss: 2.3387, train CE loss: 4.7916, train f1: 73.3409, train acc: 73.9478
+Epoch 15, valid loss: 0.5328, valid HGR loss: -0.5226, valid SWFC loss: 0.3491, valid CE loss: 0.8909, valid f1: 68.7341, valid acc: 69.8238
+Epoch 15, test loss: 1.2443, test HGR loss: -0.3091, test SWFC loss: 0.7006, test CE loss: 1.99, test f1: 65.3329, test acc: 66.2452, 
+              precision    recall  f1-score   support
+
+           0     0.7592    0.8185    0.7877      1256
+           1     0.5307    0.6157    0.5700       281
+           2     0.2800    0.1400    0.1867        50
+           3     0.5139    0.3558    0.4205       208
+           4     0.6750    0.6045    0.6378       402
+           5     0.3824    0.1912    0.2549        68
+           6     0.5204    0.5536    0.5365       345
+
+    accuracy                         0.6625      2610
+   macro avg     0.5231    0.4685    0.4849      2610
+weighted avg     0.6515    0.6625    0.6533      2610
+
+Epoch 16, train loss: 3.2768, train HGR loss: -0.4076, train SWFC loss: 2.3413, train CE loss: 4.7621, train f1: 73.0314, train acc: 73.8632
+Epoch 16, valid loss: 0.5266, valid HGR loss: -0.5373, valid SWFC loss: 0.3487, valid CE loss: 0.8816, valid f1: 68.9643, valid acc: 69.6035
+Epoch 16, test loss: 1.2579, test HGR loss: -0.3001, test SWFC loss: 0.7002, test CE loss: 2.0155, test f1: 65.3834, test acc: 66.0153, 
+              precision    recall  f1-score   support
+
+           0     0.7773    0.7890    0.7831      1256
+           1     0.5663    0.5623    0.5643       281
+           2     0.3704    0.2000    0.2597        50
+           3     0.5344    0.3365    0.4130       208
+           4     0.6423    0.6567    0.6494       402
+           5     0.3636    0.1765    0.2376        68
+           6     0.4802    0.6319    0.5457       345
+
+    accuracy                         0.6602      2610
+   macro avg     0.5335    0.4790    0.4933      2610
+weighted avg     0.6566    0.6602    0.6538      2610
+
+Epoch 17, train loss: 3.2575, train HGR loss: -0.4397, train SWFC loss: 2.3357, train CE loss: 4.7343, train f1: 74.0423, train acc: 74.6336
+Epoch 17, valid loss: 0.5272, valid HGR loss: -0.5449, valid SWFC loss: 0.3487, valid CE loss: 0.8844, valid f1: 67.8924, valid acc: 68.7225
+Epoch 17, test loss: 1.2475, test HGR loss: -0.3222, test SWFC loss: 0.7001, test CE loss: 1.9992, test f1: 64.579, test acc: 65.1341, 
+              precision    recall  f1-score   support
+
+           0     0.7654    0.8025    0.7835      1256
+           1     0.5418    0.5765    0.5586       281
+           2     0.3913    0.1800    0.2466        50
+           3     0.4194    0.3750    0.3959       208
+           4     0.6824    0.5771    0.6253       402
+           5     0.4375    0.2059    0.2800        68
+           6     0.4770    0.5710    0.5198       345
+
+    accuracy                         0.6513      2610
+   macro avg     0.5307    0.4697    0.4871      2610
+weighted avg     0.6471    0.6513    0.6458      2610
+
+Epoch 18, train loss: 3.2423, train HGR loss: -0.4306, train SWFC loss: 2.3671, train CE loss: 4.6771, train f1: 73.8838, train acc: 74.5396
+Epoch 18, valid loss: 0.5196, valid HGR loss: -0.5573, valid SWFC loss: 0.3481, valid CE loss: 0.8721, valid f1: 68.1407, valid acc: 68.9427
+Epoch 18, test loss: 1.2566, test HGR loss: -0.3521, test SWFC loss: 0.6997, test CE loss: 2.0239, test f1: 64.6358, test acc: 65.0575, 
+              precision    recall  f1-score   support
+
+           0     0.7652    0.7914    0.7781      1256
+           1     0.5088    0.6192    0.5586       281
+           2     0.3158    0.2400    0.2727        50
+           3     0.5175    0.3558    0.4217       208
+           4     0.6826    0.5672    0.6196       402
+           5     0.3478    0.2353    0.2807        68
+           6     0.4902    0.5797    0.5312       345
+
+    accuracy                         0.6506      2610
+   macro avg     0.5183    0.4841    0.4946      2610
+weighted avg     0.6493    0.6506    0.6464      2610
+
+Epoch 19, train loss: 3.1878, train HGR loss: -0.4829, train SWFC loss: 2.322, train CE loss: 4.6146, train f1: 74.1602, train acc: 74.6994
+Epoch 19, valid loss: 0.5349, valid HGR loss: -0.5714, valid SWFC loss: 0.3491, valid CE loss: 0.9049, valid f1: 68.7792, valid acc: 70.2643
+Epoch 19, test loss: 1.2855, test HGR loss: -0.3396, test SWFC loss: 0.701, test CE loss: 2.0782, test f1: 65.1329, test acc: 66.7816, 
+              precision    recall  f1-score   support
+
+           0     0.7434    0.8511    0.7936      1256
+           1     0.5962    0.5516    0.5730       281
+           2     0.3500    0.1400    0.2000        50
+           3     0.5484    0.2452    0.3389       208
+           4     0.6640    0.6095    0.6355       402
+           5     0.4062    0.1912    0.2600        68
+           6     0.5101    0.5884    0.5464       345
+
+    accuracy                         0.6678      2610
+   macro avg     0.5455    0.4538    0.4782      2610
+weighted avg     0.6526    0.6678    0.6513      2610
+
+Epoch 20, train loss: 3.1832, train HGR loss: -0.5106, train SWFC loss: 2.3172, train CE loss: 4.6148, train f1: 73.9731, train acc: 74.6242
+Epoch 20, valid loss: 0.5099, valid HGR loss: -0.5836, valid SWFC loss: 0.3481, valid CE loss: 0.8581, valid f1: 69.2808, valid acc: 69.8238
+Epoch 20, test loss: 1.2547, test HGR loss: -0.3682, test SWFC loss: 0.7001, test CE loss: 2.0229, test f1: 64.7897, test acc: 65.249, 
+              precision    recall  f1-score   support
+
+           0     0.7704    0.7803    0.7753      1256
+           1     0.5392    0.5872    0.5622       281
+           2     0.3548    0.2200    0.2716        50
+           3     0.4783    0.3702    0.4173       208
+           4     0.6304    0.6493    0.6397       402
+           5     0.3500    0.2059    0.2593        68
+           6     0.5052    0.5652    0.5335       345
+
+    accuracy                         0.6525      2610
+   macro avg     0.5183    0.4826    0.4941      2610
+weighted avg     0.6467    0.6525    0.6479      2610
+
+Epoch 21, train loss: 3.1581, train HGR loss: -0.5085, train SWFC loss: 2.3405, train CE loss: 4.5455, train f1: 74.6185, train acc: 75.2255
+Epoch 21, valid loss: 0.5132, valid HGR loss: -0.5831, valid SWFC loss: 0.3471, valid CE loss: 0.8653, valid f1: 69.8833, valid acc: 69.8238
+Epoch 21, test loss: 1.2889, test HGR loss: -0.3697, test SWFC loss: 0.699, test CE loss: 2.0926, test f1: 64.5862, test acc: 64.3295, 
+              precision    recall  f1-score   support
+
+           0     0.8049    0.7389    0.7704      1256
+           1     0.5162    0.6228    0.5645       281
+           2     0.2264    0.2400    0.2330        50
+           3     0.4624    0.3846    0.4199       208
+           4     0.6377    0.6567    0.6471       402
+           5     0.3000    0.2206    0.2542        68
+           6     0.4790    0.5942    0.5304       345
+
+    accuracy                         0.6433      2610
+   macro avg     0.4895    0.4940    0.4885      2610
+weighted avg     0.6534    0.6433    0.6459      2610
+
+Epoch 22, train loss: 3.1604, train HGR loss: -0.5255, train SWFC loss: 2.332, train CE loss: 4.5604, train f1: 74.6376, train acc: 75.1221
+Epoch 22, valid loss: 0.518, valid HGR loss: -0.5947, valid SWFC loss: 0.3477, valid CE loss: 0.8769, valid f1: 68.691, valid acc: 68.9427
+Epoch 22, test loss: 1.2882, test HGR loss: -0.3806, test SWFC loss: 0.6995, test CE loss: 2.0929, test f1: 64.5203, test acc: 64.6743, 
+              precision    recall  f1-score   support
+
+           0     0.7883    0.7619    0.7749      1256
+           1     0.4856    0.6619    0.5602       281
+           2     0.2973    0.2200    0.2529        50
+           3     0.5252    0.3510    0.4207       208
+           4     0.6621    0.6045    0.6320       402
+           5     0.3784    0.2059    0.2667        68
+           6     0.4711    0.5913    0.5244       345
+
+    accuracy                         0.6467      2610
+   macro avg     0.5154    0.4852    0.4903      2610
+weighted avg     0.6533    0.6467    0.6452      2610
+
+Epoch 23, train loss: 3.1532, train HGR loss: -0.5522, train SWFC loss: 2.3604, train CE loss: 4.5284, train f1: 75.064, train acc: 75.5731
+Epoch 23, valid loss: 0.509, valid HGR loss: -0.5989, valid SWFC loss: 0.3471, valid CE loss: 0.86, valid f1: 69.7344, valid acc: 70.0441
+Epoch 23, test loss: 1.2831, test HGR loss: -0.3901, test SWFC loss: 0.6992, test CE loss: 2.0849, test f1: 64.3562, test acc: 64.4828, 
+              precision    recall  f1-score   support
+
+           0     0.7834    0.7516    0.7672      1256
+           1     0.5325    0.6121    0.5695       281
+           2     0.2979    0.2800    0.2887        50
+           3     0.5071    0.3413    0.4080       208
+           4     0.6328    0.6343    0.6335       402
+           5     0.3415    0.2059    0.2569        68
+           6     0.4723    0.6174    0.5352       345
+
+    accuracy                         0.6448      2610
+   macro avg     0.5096    0.4918    0.4941      2610
+weighted avg     0.6492    0.6448    0.6436      2610
+
+Epoch 24, train loss: 3.1201, train HGR loss: -0.568, train SWFC loss: 2.3431, train CE loss: 4.4794, train f1: 75.2471, train acc: 75.7422
+Epoch 24, valid loss: 0.5058, valid HGR loss: -0.6131, valid SWFC loss: 0.3477, valid CE loss: 0.8562, valid f1: 68.1717, valid acc: 68.7225
+Epoch 24, test loss: 1.2711, test HGR loss: -0.4035, test SWFC loss: 0.6996, test CE loss: 2.0633, test f1: 65.1891, test acc: 65.5939, 
+              precision    recall  f1-score   support
+
+           0     0.7796    0.7803    0.7799      1256
+           1     0.5625    0.5445    0.5533       281
+           2     0.3824    0.2600    0.3095        50
+           3     0.5000    0.3606    0.4190       208
+           4     0.6285    0.6692    0.6482       402
+           5     0.3415    0.2059    0.2569        68
+           6     0.4860    0.6029    0.5382       345
+
+    accuracy                         0.6559      2610
+   macro avg     0.5258    0.4890    0.5007      2610
+weighted avg     0.6529    0.6559    0.6519      2610
+
+Epoch 25, train loss: 3.0725, train HGR loss: -0.5775, train SWFC loss: 2.3286, train CE loss: 4.3975, train f1: 75.6668, train acc: 76.2213
+Epoch 25, valid loss: 0.5015, valid HGR loss: -0.6222, valid SWFC loss: 0.3477, valid CE loss: 0.8493, valid f1: 69.4219, valid acc: 70.0441
+Epoch 25, test loss: 1.2702, test HGR loss: -0.4102, test SWFC loss: 0.6999, test CE loss: 2.0625, test f1: 64.8122, test acc: 65.364, 
+              precision    recall  f1-score   support
+
+           0     0.7695    0.7946    0.7818      1256
+           1     0.5482    0.5872    0.5670       281
+           2     0.3095    0.2600    0.2826        50
+           3     0.5000    0.3510    0.4124       208
+           4     0.6194    0.6517    0.6352       402
+           5     0.3488    0.2206    0.2703        68
+           6     0.5028    0.5217    0.5121       345
+
+    accuracy                         0.6536      2610
+   macro avg     0.5140    0.4838    0.4945      2610
+weighted avg     0.6460    0.6536    0.6481      2610
+
+Epoch 26, train loss: 3.0769, train HGR loss: -0.5827, train SWFC loss: 2.3284, train CE loss: 4.4076, train f1: 75.3436, train acc: 75.8362
+Epoch 26, valid loss: 0.5154, valid HGR loss: -0.6186, valid SWFC loss: 0.3481, valid CE loss: 0.8761, valid f1: 67.9028, valid acc: 68.7225
+Epoch 26, test loss: 1.2779, test HGR loss: -0.4017, test SWFC loss: 0.7, test CE loss: 2.0761, test f1: 64.1417, test acc: 64.8659, 
+              precision    recall  f1-score   support
+
+           0     0.7528    0.8097    0.7802      1256
+           1     0.4815    0.6477    0.5524       281
+           2     0.3171    0.2600    0.2857        50
+           3     0.5420    0.3413    0.4189       208
+           4     0.6698    0.5398    0.5978       402
+           5     0.3902    0.2353    0.2936        68
+           6     0.5145    0.5130    0.5138       345
+
+    accuracy                         0.6487      2610
+   macro avg     0.5240    0.4781    0.4918      2610
+weighted avg     0.6447    0.6487    0.6414      2610
+
+Epoch 27, train loss: 3.0602, train HGR loss: -0.5832, train SWFC loss: 2.345, train CE loss: 4.3612, train f1: 75.7699, train acc: 76.2777
+Epoch 27, valid loss: 0.509, valid HGR loss: -0.6275, valid SWFC loss: 0.3475, valid CE loss: 0.8655, valid f1: 68.235, valid acc: 68.7225
+Epoch 27, test loss: 1.2882, test HGR loss: -0.411, test SWFC loss: 0.6995, test CE loss: 2.099, test f1: 64.9195, test acc: 65.3257, 
+              precision    recall  f1-score   support
+
+           0     0.7751    0.7874    0.7812      1256
+           1     0.5689    0.5730    0.5709       281
+           2     0.3415    0.2800    0.3077        50
+           3     0.4867    0.3510    0.4078       208
+           4     0.6489    0.6070    0.6272       402
+           5     0.3077    0.1765    0.2243        68
+           6     0.4764    0.6145    0.5367       345
+
+    accuracy                         0.6533      2610
+   macro avg     0.5150    0.4842    0.4937      2610
+weighted avg     0.6505    0.6533    0.6492      2610
+
+Epoch 28, train loss: 3.0318, train HGR loss: -0.6041, train SWFC loss: 2.3275, train CE loss: 4.3224, train f1: 76.4583, train acc: 76.8508
+Epoch 28, valid loss: 0.5086, valid HGR loss: -0.6232, valid SWFC loss: 0.3475, valid CE loss: 0.8639, valid f1: 69.789, valid acc: 70.4846
+Epoch 28, test loss: 1.2953, test HGR loss: -0.4166, test SWFC loss: 0.6998, test CE loss: 2.1142, test f1: 64.4672, test acc: 65.0192, 
+              precision    recall  f1-score   support
+
+           0     0.7640    0.7914    0.7775      1256
+           1     0.5373    0.6157    0.5738       281
+           2     0.2979    0.2800    0.2887        50
+           3     0.5289    0.3077    0.3891       208
+           4     0.6522    0.5970    0.6234       402
+           5     0.3488    0.2206    0.2703        68
+           6     0.4828    0.5710    0.5232       345
+
+    accuracy                         0.6502      2610
+   macro avg     0.5160    0.4833    0.4923      2610
+weighted avg     0.6467    0.6502    0.6447      2610
+
+Epoch 29, train loss: 3.0054, train HGR loss: -0.5773, train SWFC loss: 2.348, train CE loss: 4.2478, train f1: 76.0618, train acc: 76.5502
+Epoch 29, valid loss: 0.5108, valid HGR loss: -0.6238, valid SWFC loss: 0.3474, valid CE loss: 0.8685, valid f1: 70.9926, valid acc: 71.8062
+Epoch 29, test loss: 1.2947, test HGR loss: -0.4078, test SWFC loss: 0.6996, test CE loss: 2.1112, test f1: 64.6909, test acc: 65.5556, 
+              precision    recall  f1-score   support
+
+           0     0.7589    0.8145    0.7857      1256
+           1     0.5604    0.5943    0.5769       281
+           2     0.2826    0.2600    0.2708        50
+           3     0.5135    0.2740    0.3574       208
+           4     0.6657    0.5697    0.6139       402
+           5     0.3846    0.2206    0.2804        68
+           6     0.4882    0.6000    0.5384       345
+
+    accuracy                         0.6556      2610
+   macro avg     0.5220    0.4762    0.4891      2610
+weighted avg     0.6490    0.6556    0.6469      2610
+
+Epoch 30, train loss: 2.976, train HGR loss: -0.6271, train SWFC loss: 2.3244, train CE loss: 4.2178, train f1: 76.3409, train acc: 76.785
+Epoch 30, valid loss: 0.5144, valid HGR loss: -0.6295, valid SWFC loss: 0.348, valid CE loss: 0.8764, valid f1: 68.0057, valid acc: 68.9427
+Epoch 30, test loss: 1.2986, test HGR loss: -0.4068, test SWFC loss: 0.7002, test CE loss: 2.1184, test f1: 64.3548, test acc: 65.2107, 
+              precision    recall  f1-score   support
+
+           0     0.7608    0.8002    0.7800      1256
+           1     0.5556    0.5694    0.5624       281
+           2     0.3438    0.2200    0.2683        50
+           3     0.4806    0.2981    0.3680       208
+           4     0.6463    0.6045    0.6247       402
+           5     0.4400    0.1618    0.2366        68
+           6     0.4784    0.6087    0.5357       345
+
+    accuracy                         0.6521      2610
+   macro avg     0.5293    0.4661    0.4822      2610
+weighted avg     0.6450    0.6521    0.6435      2610
+
+Epoch 31, train loss: 2.9485, train HGR loss: -0.6215, train SWFC loss: 2.3294, train CE loss: 4.1579, train f1: 77.0193, train acc: 77.4615
+Epoch 31, valid loss: 0.5141, valid HGR loss: -0.632, valid SWFC loss: 0.3476, valid CE loss: 0.8766, valid f1: 69.5326, valid acc: 70.2643
+Epoch 31, test loss: 1.3122, test HGR loss: -0.4275, test SWFC loss: 0.6999, test CE loss: 2.15, test f1: 64.4014, test acc: 65.2107, 
+              precision    recall  f1-score   support
+
+           0     0.7596    0.8049    0.7816      1256
+           1     0.5640    0.5801    0.5719       281
+           2     0.2826    0.2600    0.2708        50
+           3     0.4741    0.2644    0.3395       208
+           4     0.6488    0.6020    0.6245       402
+           5     0.3659    0.2206    0.2752        68
+           6     0.4903    0.5884    0.5349       345
+
+    accuracy                         0.6521      2610
+   macro avg     0.5122    0.4743    0.4855      2610
+weighted avg     0.6437    0.6521    0.6440      2610
+
+Epoch 32, train loss: 2.9044, train HGR loss: -0.6114, train SWFC loss: 2.3204, train CE loss: 4.0748, train f1: 77.0657, train acc: 77.5366
+Epoch 32, valid loss: 0.5152, valid HGR loss: -0.6258, valid SWFC loss: 0.3471, valid CE loss: 0.8779, valid f1: 68.2182, valid acc: 68.5022
+Epoch 32, test loss: 1.3285, test HGR loss: -0.4186, test SWFC loss: 0.6995, test CE loss: 2.1811, test f1: 63.6822, test acc: 64.0613, 
+              precision    recall  f1-score   support
+
+           0     0.7791    0.7524    0.7655      1256
+           1     0.5305    0.6192    0.5714       281
+           2     0.2857    0.2800    0.2828        50
+           3     0.4783    0.2644    0.3406       208
+           4     0.6275    0.6368    0.6321       402
+           5     0.3714    0.1912    0.2524        68
+           6     0.4654    0.6232    0.5328       345
+
+    accuracy                         0.6406      2610
+   macro avg     0.5054    0.4810    0.4825      2610
+weighted avg     0.6434    0.6406    0.6368      2610
+
+Epoch 33, train loss: 2.9201, train HGR loss: -0.6509, train SWFC loss: 2.3393, train CE loss: 4.0989, train f1: 77.3081, train acc: 77.7245
+Epoch 33, valid loss: 0.5208, valid HGR loss: -0.6393, valid SWFC loss: 0.3479, valid CE loss: 0.8912, valid f1: 68.5697, valid acc: 69.8238
+Epoch 33, test loss: 1.3356, test HGR loss: -0.4198, test SWFC loss: 0.7003, test CE loss: 2.1948, test f1: 64.7302, test acc: 65.6705, 
+              precision    recall  f1-score   support
+
+           0     0.7633    0.8010    0.7817      1256
+           1     0.5606    0.5765    0.5684       281
+           2     0.3429    0.2400    0.2824        50
+           3     0.5481    0.2740    0.3654       208
+           4     0.6296    0.6343    0.6320       402
+           5     0.4138    0.1765    0.2474        68
+           6     0.4884    0.6087    0.5419       345
+
+    accuracy                         0.6567      2610
+   macro avg     0.5352    0.4730    0.4884      2610
+weighted avg     0.6502    0.6567    0.6473      2610
+
+Epoch 34, train loss: 2.8995, train HGR loss: -0.6459, train SWFC loss: 2.3111, train CE loss: 4.0793, train f1: 77.7026, train acc: 78.0534
+Epoch 34, valid loss: 0.5244, valid HGR loss: -0.6409, valid SWFC loss: 0.3479, valid CE loss: 0.8986, valid f1: 68.3025, valid acc: 69.3833
+Epoch 34, test loss: 1.3501, test HGR loss: -0.4216, test SWFC loss: 0.7004, test CE loss: 2.2241, test f1: 64.4831, test acc: 65.4023, 
+              precision    recall  f1-score   support
+
+           0     0.7687    0.7938    0.7810      1256
+           1     0.5593    0.5872    0.5729       281
+           2     0.3333    0.2400    0.2791        50
+           3     0.5243    0.2596    0.3473       208
+           4     0.6152    0.6443    0.6294       402
+           5     0.3667    0.1618    0.2245        68
+           6     0.4883    0.6058    0.5408       345
+
+    accuracy                         0.6540      2610
+   macro avg     0.5223    0.4703    0.4821      2610
+weighted avg     0.6472    0.6540    0.6448      2610
+
+Epoch 35, train loss: 2.915, train HGR loss: -0.6248, train SWFC loss: 2.3513, train CE loss: 4.0739, train f1: 77.4975, train acc: 77.9688
+Epoch 35, valid loss: 0.5214, valid HGR loss: -0.6363, valid SWFC loss: 0.3477, valid CE loss: 0.8919, valid f1: 69.7287, valid acc: 70.9251
+Epoch 35, test loss: 1.3348, test HGR loss: -0.4251, test SWFC loss: 0.7001, test CE loss: 2.1946, test f1: 64.3701, test acc: 65.5556, 
+              precision    recall  f1-score   support
+
+           0     0.7475    0.8248    0.7843      1256
+           1     0.5655    0.5836    0.5744       281
+           2     0.2600    0.2600    0.2600        50
+           3     0.5568    0.2356    0.3311       208
+           4     0.6417    0.5970    0.6186       402
+           5     0.3659    0.2206    0.2752        68
+           6     0.5092    0.5623    0.5344       345
+
+    accuracy                         0.6556      2610
+   macro avg     0.5209    0.4691    0.4826      2610
+weighted avg     0.6456    0.6556    0.6437      2610
+
+Epoch 36, train loss: 2.8513, train HGR loss: -0.6346, train SWFC loss: 2.3404, train CE loss: 3.9572, train f1: 78.2858, train acc: 78.6452
+Epoch 36, valid loss: 0.5197, valid HGR loss: -0.6374, valid SWFC loss: 0.3476, valid CE loss: 0.8888, valid f1: 69.0595, valid acc: 70.0441
+Epoch 36, test loss: 1.3458, test HGR loss: -0.4268, test SWFC loss: 0.6999, test CE loss: 2.2169, test f1: 64.3117, test acc: 65.0192, 
+              precision    recall  f1-score   support
+
+           0     0.7667    0.7850    0.7758      1256
+           1     0.5493    0.5943    0.5709       281
+           2     0.2927    0.2400    0.2637        50
+           3     0.5225    0.2788    0.3636       208
+           4     0.6291    0.6244    0.6267       402
+           5     0.4062    0.1912    0.2600        68
+           6     0.4805    0.6087    0.5371       345
+
+    accuracy                         0.6502      2610
+   macro avg     0.5210    0.4746    0.4854      2610
+weighted avg     0.6464    0.6502    0.6431      2610
+
+Epoch 37, train loss: 2.8062, train HGR loss: -0.6565, train SWFC loss: 2.312, train CE loss: 3.8942, train f1: 78.2766, train acc: 78.6452
+Epoch 37, valid loss: 0.5224, valid HGR loss: -0.6382, valid SWFC loss: 0.3476, valid CE loss: 0.8944, valid f1: 67.3108, valid acc: 68.0617
+Epoch 37, test loss: 1.3383, test HGR loss: -0.4332, test SWFC loss: 0.6997, test CE loss: 2.2035, test f1: 63.948, test acc: 64.4828, 
+              precision    recall  f1-score   support
+
+           0     0.7737    0.7731    0.7734      1256
+           1     0.5446    0.5872    0.5651       281
+           2     0.2750    0.2200    0.2444        50
+           3     0.4917    0.2837    0.3598       208
+           4     0.6373    0.6119    0.6244       402
+           5     0.3750    0.1765    0.2400        68
+           6     0.4620    0.6348    0.5348       345
+
+    accuracy                         0.6448      2610
+   macro avg     0.5085    0.4696    0.4774      2610
+weighted avg     0.6444    0.6448    0.6395      2610
+
+Epoch 38, train loss: 2.8185, train HGR loss: -0.6422, train SWFC loss: 2.3369, train CE loss: 3.896, train f1: 78.321, train acc: 78.6734
+Epoch 38, valid loss: 0.5322, valid HGR loss: -0.6404, valid SWFC loss: 0.3478, valid CE loss: 0.9143, valid f1: 67.3632, valid acc: 68.9427
+Epoch 38, test loss: 1.3638, test HGR loss: -0.4328, test SWFC loss: 0.7002, test CE loss: 2.254, test f1: 63.3876, test acc: 64.5594, 
+              precision    recall  f1-score   support
+
+           0     0.7464    0.8153    0.7793      1256
+           1     0.5623    0.5623    0.5623       281
+           2     0.2857    0.2400    0.2609        50
+           3     0.5222    0.2260    0.3154       208
+           4     0.6557    0.5448    0.5951       402
+           5     0.3824    0.1912    0.2549        68
+           6     0.4639    0.6145    0.5287       345
+
+    accuracy                         0.6456      2610
+   macro avg     0.5169    0.4563    0.4709      2610
+weighted avg     0.6391    0.6456    0.6339      2610
+
+Epoch 39, train loss: 2.7847, train HGR loss: -0.6351, train SWFC loss: 2.3159, train CE loss: 3.8436, train f1: 78.9046, train acc: 79.3029
+Epoch 39, valid loss: 0.5302, valid HGR loss: -0.6297, valid SWFC loss: 0.3472, valid CE loss: 0.9086, valid f1: 68.5933, valid acc: 69.3833
+Epoch 39, test loss: 1.3906, test HGR loss: -0.4259, test SWFC loss: 0.6995, test CE loss: 2.3067, test f1: 63.7832, test acc: 64.3678, 
+              precision    recall  f1-score   support
+
+           0     0.7734    0.7771    0.7752      1256
+           1     0.5100    0.6335    0.5651       281
+           2     0.2500    0.2000    0.2222        50
+           3     0.5294    0.2596    0.3484       208
+           4     0.6396    0.5871    0.6122       402
+           5     0.3571    0.2206    0.2727        68
+           6     0.4731    0.6116    0.5335       345
+
+    accuracy                         0.6437      2610
+   macro avg     0.5047    0.4699    0.4756      2610
+weighted avg     0.6444    0.6437    0.6378      2610
+
+Epoch 40, train loss: 2.828, train HGR loss: -0.6572, train SWFC loss: 2.3478, train CE loss: 3.9092, train f1: 78.8237, train acc: 79.0774
+Epoch 40, valid loss: 0.5363, valid HGR loss: -0.6398, valid SWFC loss: 0.3483, valid CE loss: 0.922, valid f1: 68.513, valid acc: 69.8238
+Epoch 40, test loss: 1.3749, test HGR loss: -0.4344, test SWFC loss: 0.7007, test CE loss: 2.2761, test f1: 63.9423, test acc: 65.0575, 
+              precision    recall  f1-score   support
+
+           0     0.7451    0.8097    0.7760      1256
+           1     0.5240    0.6228    0.5691       281
+           2     0.2759    0.1600    0.2025        50
+           3     0.5116    0.3173    0.3917       208
+           4     0.6128    0.5945    0.6035       402
+           5     0.4231    0.1618    0.2340        68
+           6     0.5401    0.5275    0.5337       345
+
+    accuracy                         0.6506      2610
+   macro avg     0.5189    0.4562    0.4730      2610
+weighted avg     0.6378    0.6506    0.6394      2610
+
+Best test f1: 65.9847 at epoch 13
+              precision    recall  f1-score   support
+
+           0     0.7688    0.8232    0.7951      1256
+           1     0.5548    0.5943    0.5739       281
+           2     0.3500    0.1400    0.2000        50
+           3     0.5245    0.3606    0.4274       208
+           4     0.6540    0.6443    0.6491       402
+           5     0.4138    0.1765    0.2474        68
+           6     0.5160    0.5623    0.5381       345
+
+    accuracy                         0.6697      2610
+   macro avg     0.5403    0.4716    0.4901      2610
+weighted avg     0.6579    0.6697    0.6598      2610
+

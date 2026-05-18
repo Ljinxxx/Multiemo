@@ -1,0 +1,29 @@
+==========================================
+Loaded checkpoint: Checkpoints/MELD/best_disentangle_checkpoint_main_24G_seed2023.pt
+Dataset: MELD
+Best test f1: 65.5818
+Best epoch: 9
+==========================================
+Extracting train features...
+Extracting test features...
+==========================================
+Identity Leakage Probe Results
+==========================================
+Checkpoint: Checkpoints/MELD/best_disentangle_checkpoint_main_24G_seed2023.pt
+Dataset: MELD
+Checkpoint best test f1: 65.5818
+Checkpoint best epoch: 9
+
+Speaker majority baseline acc: 44.7126
+Emotion majority baseline acc: 48.1226
+
+Feature	SpeakerAcc	SpeakerMacroF1	EmotionAcc	EmotionMacroF1
+fc_features	49.0805	13.8174	66.5900	49.3253
+emotion_features	47.3180	11.6680	66.6667	49.7664
+identity_features	47.0115	12.1601	66.4368	49.3498
+
+Interpretation:
+1. If emotion_features SpeakerAcc is much lower than fc_features SpeakerAcc, identity leakage is reduced.
+2. If identity_features SpeakerAcc is high, identity branch successfully captures speaker information.
+3. Good disentanglement means: emotion_features low SpeakerAcc + identity_features high SpeakerAcc + emotion_features keep reasonable EmotionAcc.
+Saved probe result to Log/Summary/MELD_identity_leakage_probe_24G.txt

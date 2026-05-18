@@ -1,0 +1,12 @@
+dataset,file,best_f1,best_epoch,status
+IEMOCAP,IEMOCAP_light_identity_seed2023.put,73.3203,122,finished
+IEMOCAP,IEMOCAP_light_identity_seed2024.put,72.5927,52,finished
+IEMOCAP,IEMOCAP_light_identity_seed2025.put,72.2003,55,finished
+IEMOCAP,IEMOCAP_light_identity_seed2026.put,73.215,70,finished
+IEMOCAP,IEMOCAP_light_identity_seed2027.put,72.9844,113,finished
+MELD,MELD_baseline_cmcl_no_graph_seed2023.put,65.8438,15,finished
+MELD,MELD_identity_only_alpha0002_id0005_seed2023.put,65.9181,13,finished
+MELD,MELD_identity_only_alpha0005_id0005_seed2023.put,65.9009,13,finished
+MELD,MELD_identity_only_alpha0_id0002_seed2023.put,65.9201,13,finished
+MELD,MELD_identity_only_alpha0_id0005_seed2023.put,65.9462,13,finished
+MELD,MELD_identity_only_alpha0_id001_seed2023.put,65.8582,10,finished

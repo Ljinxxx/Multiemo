@@ -1,0 +1,10 @@
+dataset,file,best_f1,best_epoch,status
+IEMOCAP,IEMOCAP_gmtl_bs32_a010_id003_ortho0005_seed2023.put,72.9402,87,finished
+IEMOCAP,IEMOCAP_gmtl_bs48_a005_id002_ortho0003_seed2023.put,72.9005,91,finished
+IEMOCAP,IEMOCAP_gmtl_bs48_a010_id001_ortho0000_seed2023.put,72.6902,88,finished
+IEMOCAP,IEMOCAP_gmtl_bs48_a010_id003_ortho0005_seed2023.put,72.62,97,finished
+MELD,MELD_baseline_cmcl_no_graph_seed2023.put,65.8438,15,finished
+MELD,MELD_gmtl_bs100_a002_id002_ortho0003_seed2023.put,65.8429,12,finished
+MELD,MELD_gmtl_bs128_a001_id001_ortho0000_seed2023.put,65.751,10,finished
+MELD,MELD_gmtl_bs128_a002_id002_ortho0003_seed2023.put,65.6991,13,finished
+MELD,MELD_gmtl_bs128_a005_id001_ortho0000_seed2023.put,65.8528,13,finished

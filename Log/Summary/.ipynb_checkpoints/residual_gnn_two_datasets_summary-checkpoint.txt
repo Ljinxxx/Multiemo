@@ -1,0 +1,6 @@
+===== IEMOCAP Residual GNN Adapter =====
+Best test f1: 70.9819 at epoch 48
+
+===== MELD Residual GNN Adapter =====
+Best test f1: 66.0527 at epoch 14
+

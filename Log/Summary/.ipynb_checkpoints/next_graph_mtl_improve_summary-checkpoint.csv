@@ -1,0 +1,10 @@
+dataset,file,best_f1,best_epoch,status
+IEMOCAP,IEMOCAP_graph_mtl_best_150ep_seed2023.put,73.2951,133,finished
+IEMOCAP,IEMOCAP_graph_mtl_best_150ep_seed2024.put,72.182,52,finished
+IEMOCAP,IEMOCAP_graph_mtl_best_150ep_seed2025.put,72.6993,87,finished
+IEMOCAP,IEMOCAP_graph_mtl_light_identity_150ep_seed2023.put,73.3203,122,finished
+MELD,MELD_aux_graph_emotion_only_no_residual_seed2023.put,65.797,10,finished
+MELD,MELD_aux_graph_identity_no_residual_seed2023.put,65.6921,13,finished
+MELD,MELD_aux_identity_only_no_residual_seed2023.put,65.9462,13,finished
+MELD,MELD_cmcl_baseline_no_graph_seed2023.put,65.8438,15,finished
+MELD,MELD_weak_residual_identity_seed2023.put,65.9009,13,finished

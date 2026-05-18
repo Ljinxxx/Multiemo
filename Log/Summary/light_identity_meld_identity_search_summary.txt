@@ -1,0 +1,35 @@
+===== IEMOCAP Light Identity Results =====
+IEMOCAP_light_identity_seed2023.put
+Best test f1: 73.3203 at epoch 122
+
+IEMOCAP_light_identity_seed2024.put
+Best test f1: 72.5927 at epoch 52
+
+IEMOCAP_light_identity_seed2025.put
+Best test f1: 72.2003 at epoch 55
+
+IEMOCAP_light_identity_seed2026.put
+Best test f1: 73.215 at epoch 70
+
+IEMOCAP_light_identity_seed2027.put
+Best test f1: 72.9844 at epoch 113
+
+===== MELD Identity-only Results =====
+MELD_baseline_cmcl_no_graph_seed2023.put
+Best test f1: 65.8438 at epoch 15
+
+MELD_identity_only_alpha0002_id0005_seed2023.put
+Best test f1: 65.9181 at epoch 13
+
+MELD_identity_only_alpha0005_id0005_seed2023.put
+Best test f1: 65.9009 at epoch 13
+
+MELD_identity_only_alpha0_id0002_seed2023.put
+Best test f1: 65.9201 at epoch 13
+
+MELD_identity_only_alpha0_id0005_seed2023.put
+Best test f1: 65.9462 at epoch 13
+
+MELD_identity_only_alpha0_id001_seed2023.put
+Best test f1: 65.8582 at epoch 10
+

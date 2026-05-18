@@ -1,0 +1,16 @@
+group,file,best_f1,best_epoch,status
+IEMOCAP_MAIN,IEMOCAP_identity_leakage_probe_seed2023.put,,,failed_or_unfinished
+IEMOCAP_MAIN,IEMOCAP_main_disentangle_seed2023.put,72.9902,111,finished
+MELD_MAIN,MELD_identity_leakage_probe_seed2023.put,,,failed_or_unfinished
+MELD_MAIN,MELD_main_disentangle_seed2023.put,65.5818,9,finished
+IEMOCAP_ABLATION,IEMOCAP_A_no_graph_24G_seed2023.put,72.9319,93,finished
+IEMOCAP_ABLATION,IEMOCAP_B_gnn_residual_only_24G_seed2023.put,73.4239,111,finished
+IEMOCAP_ABLATION,IEMOCAP_C_graph_emotion_only_24G_seed2023.put,73.1213,111,finished
+IEMOCAP_ABLATION,IEMOCAP_D_light_identity_24G_seed2023.put,72.9948,111,finished
+IEMOCAP_ABLATION,IEMOCAP_E_identity_adv_24G_seed2023.put,72.9328,111,finished
+IEMOCAP_ABLATION,IEMOCAP_F_full_disentangle_24G_seed2023.put,72.9902,111,finished
+MELD_ABLATION,MELD_A_no_graph_24G_seed2023.put,65.5647,9,finished
+MELD_ABLATION,MELD_B_identity_only_24G_seed2023.put,65.5864,15,finished
+MELD_ABLATION,MELD_C_adv_only_24G_seed2023.put,65.5574,15,finished
+MELD_ABLATION,MELD_D_identity_adv_24G_seed2023.put,65.5818,9,finished
+MELD_ABLATION,MELD_E_identity_adv_weak_residual_24G_seed2023.put,65.6626,9,finished

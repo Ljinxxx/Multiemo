@@ -1,0 +1,29 @@
+===== IEMOCAP Graph MTL Results =====
+IEMOCAP_gmtl_bs32_a010_id003_ortho0005_seed2023.put
+Best test f1: 72.9402 at epoch 87
+
+IEMOCAP_gmtl_bs48_a005_id002_ortho0003_seed2023.put
+Best test f1: 72.9005 at epoch 91
+
+IEMOCAP_gmtl_bs48_a010_id001_ortho0000_seed2023.put
+Best test f1: 72.6902 at epoch 88
+
+IEMOCAP_gmtl_bs48_a010_id003_ortho0005_seed2023.put
+Best test f1: 72.62 at epoch 97
+
+===== MELD Graph MTL Results =====
+MELD_baseline_cmcl_no_graph_seed2023.put
+Best test f1: 65.8438 at epoch 15
+
+MELD_gmtl_bs100_a002_id002_ortho0003_seed2023.put
+Best test f1: 65.8429 at epoch 12
+
+MELD_gmtl_bs128_a001_id001_ortho0000_seed2023.put
+Best test f1: 65.751 at epoch 10
+
+MELD_gmtl_bs128_a002_id002_ortho0003_seed2023.put
+Best test f1: 65.6991 at epoch 13
+
+MELD_gmtl_bs128_a005_id001_ortho0000_seed2023.put
+Best test f1: 65.8528 at epoch 13
+

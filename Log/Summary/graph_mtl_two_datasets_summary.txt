@@ -1,0 +1,6 @@
+===== IEMOCAP Graph MTL =====
+Best test f1: 73.2511 at epoch 98
+
+===== MELD Graph MTL =====
+Best test f1: 65.7929 at epoch 8
+

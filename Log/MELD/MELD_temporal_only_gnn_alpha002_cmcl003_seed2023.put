@@ -1,0 +1,135 @@
+Epoch 1, train loss: 7.4416, train HGR loss: 4.9329, train SWFC loss: 2.2458, train CE loss: 9.4824, train AUX loss: 0.0, train CMCL loss: 43.6245, train f1: 29.6549, train acc: 38.9895
+Epoch 1, valid loss: 1.0953, valid HGR loss: 0.5914, valid SWFC loss: 0.394, valid CE loss: 1.3398, valid AUX loss: 0.0, valid CMCL loss: 6.9539, valid f1: 32.6749, valid acc: 48.4674
+Epoch 1, test loss: 2.1798, test HGR loss: 1.2413, test SWFC loss: 0.6966, test CE loss: 2.7067, test AUX loss: 0.0, test CMCL loss: 14.1241, test f1: 32.8694, test acc: 48.8506, 
+Epoch 2, train loss: 6.2744, train HGR loss: 2.579, train SWFC loss: 2.2988, train CE loss: 7.5664, train AUX loss: 0.0, train CMCL loss: 43.7919, train f1: 55.4744, train acc: 62.0052
+Epoch 2, valid loss: 0.9644, valid HGR loss: 0.2491, valid SWFC loss: 0.392, valid CE loss: 1.1483, valid AUX loss: 0.0, valid CMCL loss: 6.9518, valid f1: 64.2161, valid acc: 68.9655
+Epoch 2, test loss: 1.9579, test HGR loss: 0.5334, test SWFC loss: 0.6943, test CE loss: 2.4062, test AUX loss: 0.0, test CMCL loss: 14.1234, test f1: 59.8127, test acc: 65.1724, 
+Epoch 3, train loss: 5.7285, train HGR loss: 1.4031, train SWFC loss: 2.3157, train CE loss: 6.6993, train AUX loss: 0.0, train CMCL loss: 43.7404, train f1: 65.946, train acc: 69.9722
+Epoch 3, valid loss: 0.9047, valid HGR loss: 0.1554, valid SWFC loss: 0.3904, valid CE loss: 1.0498, valid AUX loss: 0.0, valid CMCL loss: 6.9367, valid f1: 68.8206, valid acc: 72.1264
+Epoch 3, test loss: 1.8815, test HGR loss: 0.3456, test SWFC loss: 0.6928, test CE loss: 2.2935, test AUX loss: 0.0, test CMCL loss: 14.101, test f1: 62.3669, test acc: 65.5172, 
+Epoch 4, train loss: 5.385, train HGR loss: 0.8829, train SWFC loss: 2.2602, train CE loss: 6.1707, train AUX loss: 0.0, train CMCL loss: 43.5763, train f1: 68.6117, train acc: 71.5636
+Epoch 4, valid loss: 0.876, valid HGR loss: 0.0767, valid SWFC loss: 0.3894, valid CE loss: 1.0112, valid AUX loss: 0.0, valid CMCL loss: 6.8997, valid f1: 70.4694, valid acc: 72.7011
+Epoch 4, test loss: 1.8342, test HGR loss: 0.2063, test SWFC loss: 0.6918, test CE loss: 2.2312, test AUX loss: 0.0, test CMCL loss: 14.0425, test f1: 63.4316, test acc: 65.4023, 
+Epoch 5, train loss: 5.2103, train HGR loss: 0.4282, train SWFC loss: 2.2657, train CE loss: 5.9191, train AUX loss: 0.0, train CMCL loss: 43.3868, train f1: 70.5796, train acc: 72.7074
+Epoch 5, valid loss: 0.8474, valid HGR loss: -0.0099, valid SWFC loss: 0.3894, valid CE loss: 0.975, valid AUX loss: 0.0, valid CMCL loss: 6.8371, valid f1: 70.4452, valid acc: 72.9885
+Epoch 5, test loss: 1.8008, test HGR loss: 0.0343, test SWFC loss: 0.6919, test CE loss: 2.2049, test AUX loss: 0.0, test CMCL loss: 13.9372, test f1: 63.6492, test acc: 65.9387, 
+Epoch 6, train loss: 5.0359, train HGR loss: -0.2707, train SWFC loss: 2.2507, train CE loss: 5.7612, train AUX loss: 0.0, train CMCL loss: 42.7363, train f1: 70.9576, train acc: 73.1251
+Epoch 6, valid loss: 0.8316, valid HGR loss: -0.0834, valid SWFC loss: 0.389, valid CE loss: 0.9637, valid AUX loss: 0.0, valid CMCL loss: 6.7498, valid f1: 70.0822, valid acc: 72.4138
+Epoch 6, test loss: 1.7811, test HGR loss: -0.1243, test SWFC loss: 0.6916, test CE loss: 2.2067, test AUX loss: 0.0, test CMCL loss: 13.7834, test f1: 63.8029, test acc: 65.6322, 
+Epoch 7, train loss: 4.9684, train HGR loss: -0.5302, train SWFC loss: 2.2633, train CE loss: 5.6905, train AUX loss: 0.0, train CMCL loss: 42.3613, train f1: 71.015, train acc: 73.1749
+Epoch 7, valid loss: 0.8262, valid HGR loss: -0.1284, valid SWFC loss: 0.3885, valid CE loss: 0.9672, valid AUX loss: 0.0, valid CMCL loss: 6.6701, valid f1: 70.0129, valid acc: 71.8391
+Epoch 7, test loss: 1.7672, test HGR loss: -0.2047, test SWFC loss: 0.691, test CE loss: 2.2034, test AUX loss: 0.0, test CMCL loss: 13.6514, test f1: 64.4043, test acc: 66.0536, 
+Epoch 8, train loss: 4.897, train HGR loss: -0.7143, train SWFC loss: 2.2341, train CE loss: 5.6284, train AUX loss: 0.0, train CMCL loss: 42.0201, train f1: 71.8233, train acc: 73.7617
+Epoch 8, valid loss: 0.8115, valid HGR loss: -0.1554, valid SWFC loss: 0.3888, valid CE loss: 0.9465, valid AUX loss: 0.0, valid CMCL loss: 6.6093, valid f1: 70.4621, valid acc: 72.7969
+Epoch 8, test loss: 1.7474, test HGR loss: -0.2735, test SWFC loss: 0.6914, test CE loss: 2.1843, test AUX loss: 0.0, test CMCL loss: 13.5352, test f1: 63.667, test acc: 65.6705, 
+Epoch 9, train loss: 4.8026, train HGR loss: -0.8472, train SWFC loss: 2.2068, train CE loss: 5.5075, train AUX loss: 0.0, train CMCL loss: 41.6957, train f1: 71.8665, train acc: 73.8214
+Epoch 9, valid loss: 0.801, valid HGR loss: -0.1756, valid SWFC loss: 0.3888, valid CE loss: 0.9321, valid AUX loss: 0.0, valid CMCL loss: 6.5656, valid f1: 71.2302, valid acc: 73.0843
+Epoch 9, test loss: 1.7401, test HGR loss: -0.3158, test SWFC loss: 0.6915, test CE loss: 2.1833, test AUX loss: 0.0, test CMCL loss: 13.448, test f1: 64.5016, test acc: 66.4751, 
+Epoch 10, train loss: 4.8011, train HGR loss: -0.9307, train SWFC loss: 2.2755, train CE loss: 5.48, train AUX loss: 0.0, train CMCL loss: 41.4662, train f1: 72.0565, train acc: 74.0402
+Epoch 10, valid loss: 0.8, valid HGR loss: -0.1946, valid SWFC loss: 0.3879, valid CE loss: 0.9371, valid AUX loss: 0.0, valid CMCL loss: 6.524, valid f1: 71.3219, valid acc: 72.5096
+Epoch 10, test loss: 1.7263, test HGR loss: -0.3554, test SWFC loss: 0.6904, test CE loss: 2.1691, test AUX loss: 0.0, test CMCL loss: 13.3725, test f1: 65.1203, test acc: 66.4368, 
+Epoch 11, train loss: 4.6699, train HGR loss: -1.1379, train SWFC loss: 2.24, train CE loss: 5.307, train AUX loss: 0.0, train CMCL loss: 41.1392, train f1: 72.8399, train acc: 74.3784
+Epoch 11, valid loss: 0.7893, valid HGR loss: -0.2069, valid SWFC loss: 0.3878, valid CE loss: 0.9199, valid AUX loss: 0.0, valid CMCL loss: 6.4957, valid f1: 73.36, valid acc: 73.9464
+Epoch 11, test loss: 1.7259, test HGR loss: -0.3703, test SWFC loss: 0.6904, test CE loss: 2.1742, test AUX loss: 0.0, test CMCL loss: 13.3224, test f1: 65.5116, test acc: 66.5134, 
+Epoch 12, train loss: 4.6965, train HGR loss: -1.2166, train SWFC loss: 2.2632, train CE loss: 5.3679, train AUX loss: 0.0, train CMCL loss: 40.9647, train f1: 73.4817, train acc: 74.7762
+Epoch 12, valid loss: 0.7853, valid HGR loss: -0.2202, valid SWFC loss: 0.3883, valid CE loss: 0.9156, valid AUX loss: 0.0, valid CMCL loss: 6.4744, valid f1: 72.8457, valid acc: 73.659
+Epoch 12, test loss: 1.717, test HGR loss: -0.4004, test SWFC loss: 0.6909, test CE loss: 2.1649, test AUX loss: 0.0, test CMCL loss: 13.2745, test f1: 65.3241, test acc: 66.8582, 
+Epoch 13, train loss: 4.6654, train HGR loss: -1.2664, train SWFC loss: 2.258, train CE loss: 5.3276, train AUX loss: 0.0, train CMCL loss: 40.833, train f1: 74.3543, train acc: 75.363
+Epoch 13, valid loss: 0.7805, valid HGR loss: -0.2336, valid SWFC loss: 0.3879, valid CE loss: 0.9105, valid AUX loss: 0.0, valid CMCL loss: 6.4475, valid f1: 73.2094, valid acc: 73.8506
+Epoch 13, test loss: 1.7118, test HGR loss: -0.428, test SWFC loss: 0.6905, test CE loss: 2.1631, test AUX loss: 0.0, test CMCL loss: 13.2287, test f1: 65.6078, test acc: 66.705, 
+Epoch 14, train loss: 4.6025, train HGR loss: -1.19, train SWFC loss: 2.2212, train CE loss: 5.2143, train AUX loss: 0.0, train CMCL loss: 40.8619, train f1: 74.6195, train acc: 75.6614
+Epoch 14, valid loss: 0.7787, valid HGR loss: -0.2376, valid SWFC loss: 0.3882, valid CE loss: 0.9082, valid AUX loss: 0.0, valid CMCL loss: 6.4366, valid f1: 73.6671, valid acc: 74.4253
+Epoch 14, test loss: 1.711, test HGR loss: -0.4214, test SWFC loss: 0.6909, test CE loss: 2.1604, test AUX loss: 0.0, test CMCL loss: 13.2187, test f1: 66.0746, test acc: 67.3946, 
+Epoch 15, train loss: 4.5736, train HGR loss: -1.3915, train SWFC loss: 2.248, train CE loss: 5.1912, train AUX loss: 0.0, train CMCL loss: 40.5962, train f1: 75.0277, train acc: 75.8604
+Epoch 15, valid loss: 0.7755, valid HGR loss: -0.2433, valid SWFC loss: 0.3883, valid CE loss: 0.9038, valid AUX loss: 0.0, valid CMCL loss: 6.4212, valid f1: 73.4661, valid acc: 74.1379
+Epoch 15, test loss: 1.7112, test HGR loss: -0.4462, test SWFC loss: 0.6911, test CE loss: 2.1683, test AUX loss: 0.0, test CMCL loss: 13.1756, test f1: 65.9157, test acc: 67.1648, 
+Epoch 16, train loss: 4.5759, train HGR loss: -1.162, train SWFC loss: 2.2694, train CE loss: 5.1242, train AUX loss: 0.0, train CMCL loss: 40.7391, train f1: 75.4507, train acc: 76.2284
+Epoch 16, valid loss: 0.7712, valid HGR loss: -0.2505, valid SWFC loss: 0.388, valid CE loss: 0.898, valid AUX loss: 0.0, valid CMCL loss: 6.4, valid f1: 73.7307, valid acc: 74.4253
+Epoch 16, test loss: 1.7103, test HGR loss: -0.4544, test SWFC loss: 0.6908, test CE loss: 2.1701, test AUX loss: 0.0, test CMCL loss: 13.1459, test f1: 65.385, test acc: 66.6667, 
+Epoch 17, train loss: 4.5788, train HGR loss: -1.2333, train SWFC loss: 2.2818, train CE loss: 5.1454, train AUX loss: 0.0, train CMCL loss: 40.5595, train f1: 75.4649, train acc: 76.2383
+Epoch 17, valid loss: 0.7754, valid HGR loss: -0.2549, valid SWFC loss: 0.3876, valid CE loss: 0.9087, valid AUX loss: 0.0, valid CMCL loss: 6.3837, valid f1: 73.3544, valid acc: 73.7548
+Epoch 17, test loss: 1.7056, test HGR loss: -0.46, test SWFC loss: 0.6903, test CE loss: 2.1638, test AUX loss: 0.0, test CMCL loss: 13.1213, test f1: 65.8371, test acc: 66.7433, 
+Epoch 18, train loss: 4.4907, train HGR loss: -1.5152, train SWFC loss: 2.2461, train CE loss: 5.0694, train AUX loss: 0.0, train CMCL loss: 40.3038, train f1: 75.6955, train acc: 76.5069
+Epoch 18, valid loss: 0.775, valid HGR loss: -0.2566, valid SWFC loss: 0.3872, valid CE loss: 0.9093, valid AUX loss: 0.0, valid CMCL loss: 6.369, valid f1: 73.2191, valid acc: 73.5632
+Epoch 18, test loss: 1.7148, test HGR loss: -0.476, test SWFC loss: 0.6901, test CE loss: 2.188, test AUX loss: 0.0, test CMCL loss: 13.0803, test f1: 65.424, test acc: 66.0153, 
+Epoch 19, train loss: 4.5142, train HGR loss: -1.4762, train SWFC loss: 2.2824, train CE loss: 5.0829, train AUX loss: 0.0, train CMCL loss: 40.248, train f1: 75.9035, train acc: 76.5466
+Epoch 19, valid loss: 0.773, valid HGR loss: -0.2614, valid SWFC loss: 0.3875, valid CE loss: 0.9064, valid AUX loss: 0.0, valid CMCL loss: 6.3637, valid f1: 73.9631, valid acc: 74.5211
+Epoch 19, test loss: 1.718, test HGR loss: -0.478, test SWFC loss: 0.6903, test CE loss: 2.1949, test AUX loss: 0.0, test CMCL loss: 13.0742, test f1: 65.1646, test acc: 66.1303, 
+Epoch 20, train loss: 4.4539, train HGR loss: -1.415, train SWFC loss: 2.2449, train CE loss: 4.9761, train AUX loss: 0.0, train CMCL loss: 40.3123, train f1: 76.4293, train acc: 77.0738
+Epoch 20, valid loss: 0.7727, valid HGR loss: -0.2672, valid SWFC loss: 0.3877, valid CE loss: 0.9071, valid AUX loss: 0.0, valid CMCL loss: 6.3596, valid f1: 72.3356, valid acc: 72.9885
+Epoch 20, test loss: 1.707, test HGR loss: -0.5008, test SWFC loss: 0.6907, test CE loss: 2.178, test AUX loss: 0.0, test CMCL loss: 13.0595, test f1: 65.7021, test acc: 66.7816, 
+Epoch 21, train loss: 4.4074, train HGR loss: -1.667, train SWFC loss: 2.2519, train CE loss: 4.9423, train AUX loss: 0.0, train CMCL loss: 40.0735, train f1: 76.7584, train acc: 77.3324
+Epoch 21, valid loss: 0.7772, valid HGR loss: -0.2694, valid SWFC loss: 0.3884, valid CE loss: 0.9161, valid AUX loss: 0.0, valid CMCL loss: 6.3564, valid f1: 71.842, valid acc: 72.8927
+Epoch 21, test loss: 1.7325, test HGR loss: -0.4945, test SWFC loss: 0.6915, test CE loss: 2.227, test AUX loss: 0.0, test CMCL loss: 13.0618, test f1: 64.9566, test acc: 66.9732, 
+Epoch 22, train loss: 4.4607, train HGR loss: -1.3103, train SWFC loss: 2.2566, train CE loss: 4.961, train AUX loss: 0.0, train CMCL loss: 40.2861, train f1: 76.5061, train acc: 77.1335
+Epoch 22, valid loss: 0.7679, valid HGR loss: -0.271, valid SWFC loss: 0.3875, valid CE loss: 0.8996, valid AUX loss: 0.0, valid CMCL loss: 6.3389, valid f1: 72.4768, valid acc: 73.3716
+Epoch 22, test loss: 1.7229, test HGR loss: -0.4863, test SWFC loss: 0.6906, test CE loss: 2.2078, test AUX loss: 0.0, test CMCL loss: 13.0485, test f1: 65.188, test acc: 66.8966, 
+Epoch 23, train loss: 4.425, train HGR loss: -1.5288, train SWFC loss: 2.3066, train CE loss: 4.9033, train AUX loss: 0.0, train CMCL loss: 40.1169, train f1: 76.9061, train acc: 77.4816
+Epoch 23, valid loss: 0.7743, valid HGR loss: -0.2763, valid SWFC loss: 0.3874, valid CE loss: 0.914, valid AUX loss: 0.0, valid CMCL loss: 6.3331, valid f1: 71.2403, valid acc: 71.9349
+Epoch 23, test loss: 1.7141, test HGR loss: -0.5114, test SWFC loss: 0.6904, test CE loss: 2.1966, test AUX loss: 0.0, test CMCL loss: 13.0234, test f1: 65.3375, test acc: 66.6284, 
+Epoch 24, train loss: 4.4323, train HGR loss: -1.4302, train SWFC loss: 2.2568, train CE loss: 4.9373, train AUX loss: 0.0, train CMCL loss: 40.1323, train f1: 77.382, train acc: 77.8795
+Epoch 24, valid loss: 0.7704, valid HGR loss: -0.2773, valid SWFC loss: 0.3875, valid CE loss: 0.9065, valid AUX loss: 0.0, valid CMCL loss: 6.3299, valid f1: 72.2871, valid acc: 73.0843
+Epoch 24, test loss: 1.7216, test HGR loss: -0.5048, test SWFC loss: 0.6905, test CE loss: 2.2103, test AUX loss: 0.0, test CMCL loss: 13.0259, test f1: 65.4955, test acc: 66.9349, 
+Epoch 25, train loss: 4.418, train HGR loss: -1.4814, train SWFC loss: 2.2307, train CE loss: 4.9382, train AUX loss: 0.0, train CMCL loss: 40.1596, train f1: 77.3894, train acc: 77.8695
+Epoch 25, valid loss: 0.7699, valid HGR loss: -0.2788, valid SWFC loss: 0.3877, valid CE loss: 0.906, valid AUX loss: 0.0, valid CMCL loss: 6.3247, valid f1: 71.9559, valid acc: 72.9885
+Epoch 25, test loss: 1.7173, test HGR loss: -0.5235, test SWFC loss: 0.691, test CE loss: 2.2064, test AUX loss: 0.0, test CMCL loss: 13.0003, test f1: 64.8826, test acc: 66.5134, 
+Epoch 26, train loss: 4.3996, train HGR loss: -1.5022, train SWFC loss: 2.2629, train CE loss: 4.8864, train AUX loss: 0.0, train CMCL loss: 40.0472, train f1: 77.7252, train acc: 78.2574
+Epoch 26, valid loss: 0.7705, valid HGR loss: -0.2787, valid SWFC loss: 0.3876, valid CE loss: 0.9073, valid AUX loss: 0.0, valid CMCL loss: 6.3221, valid f1: 72.7105, valid acc: 73.7548
+Epoch 26, test loss: 1.7382, test HGR loss: -0.5127, test SWFC loss: 0.6911, test CE loss: 2.2459, test AUX loss: 0.0, test CMCL loss: 13.0032, test f1: 64.5069, test acc: 66.092, 
+Epoch 27, train loss: 4.2831, train HGR loss: -1.7735, train SWFC loss: 2.2426, train CE loss: 4.7393, train AUX loss: 0.0, train CMCL loss: 39.7911, train f1: 78.0342, train acc: 78.5061
+Epoch 27, valid loss: 0.7715, valid HGR loss: -0.2853, valid SWFC loss: 0.3868, valid CE loss: 0.912, valid AUX loss: 0.0, valid CMCL loss: 6.3085, valid f1: 72.0488, valid acc: 72.5096
+Epoch 27, test loss: 1.7214, test HGR loss: -0.5241, test SWFC loss: 0.69, test CE loss: 2.2166, test AUX loss: 0.0, test CMCL loss: 12.984, test f1: 65.3056, test acc: 66.3985, 
+Epoch 28, train loss: 4.3158, train HGR loss: -1.6667, train SWFC loss: 2.2709, train CE loss: 4.7551, train AUX loss: 0.0, train CMCL loss: 39.885, train f1: 78.3133, train acc: 78.8343
+Epoch 28, valid loss: 0.7686, valid HGR loss: -0.282, valid SWFC loss: 0.386, valid CE loss: 0.9068, valid AUX loss: 0.0, valid CMCL loss: 6.2987, valid f1: 72.9838, valid acc: 73.1801
+Epoch 28, test loss: 1.726, test HGR loss: -0.5226, test SWFC loss: 0.6892, test CE loss: 2.2271, test AUX loss: 0.0, test CMCL loss: 12.9669, test f1: 64.6087, test acc: 65.1724, 
+Epoch 29, train loss: 4.3025, train HGR loss: -1.6169, train SWFC loss: 2.2654, train CE loss: 4.7225, train AUX loss: 0.0, train CMCL loss: 39.8939, train f1: 78.6815, train acc: 79.1725
+Epoch 29, valid loss: 0.768, valid HGR loss: -0.2896, valid SWFC loss: 0.3868, valid CE loss: 0.9065, valid AUX loss: 0.0, valid CMCL loss: 6.2987, valid f1: 72.7359, valid acc: 73.0843
+Epoch 29, test loss: 1.7213, test HGR loss: -0.5361, test SWFC loss: 0.6899, test CE loss: 2.2199, test AUX loss: 0.0, test CMCL loss: 12.9654, test f1: 64.7921, test acc: 65.5939, 
+Epoch 30, train loss: 4.2588, train HGR loss: -1.5324, train SWFC loss: 2.2339, train CE loss: 4.6377, train AUX loss: 0.0, train CMCL loss: 39.9879, train f1: 79.2381, train acc: 79.6797
+Epoch 30, valid loss: 0.7686, valid HGR loss: -0.2893, valid SWFC loss: 0.3869, valid CE loss: 0.9072, valid AUX loss: 0.0, valid CMCL loss: 6.3043, valid f1: 72.3831, valid acc: 72.7011
+Epoch 30, test loss: 1.7457, test HGR loss: -0.5343, test SWFC loss: 0.6902, test CE loss: 2.2675, test AUX loss: 0.0, test CMCL loss: 12.9782, test f1: 65.2624, test acc: 66.2452, 
+Epoch 31, train loss: 4.229, train HGR loss: -1.7434, train SWFC loss: 2.2406, train CE loss: 4.6268, train AUX loss: 0.0, train CMCL loss: 39.7888, train f1: 79.4347, train acc: 79.8985
+Epoch 31, valid loss: 0.7634, valid HGR loss: -0.2892, valid SWFC loss: 0.3866, valid CE loss: 0.8976, valid AUX loss: 0.0, valid CMCL loss: 6.2965, valid f1: 72.7381, valid acc: 73.1801
+Epoch 31, test loss: 1.7449, test HGR loss: -0.539, test SWFC loss: 0.6902, test CE loss: 2.2678, test AUX loss: 0.0, test CMCL loss: 12.9615, test f1: 64.774, test acc: 65.8238, 
+Epoch 32, train loss: 4.1885, train HGR loss: -1.6367, train SWFC loss: 2.239, train CE loss: 4.522, train AUX loss: 0.0, train CMCL loss: 39.8523, train f1: 79.7737, train acc: 80.1671
+Epoch 32, valid loss: 0.7795, valid HGR loss: -0.289, valid SWFC loss: 0.3876, valid CE loss: 0.9287, valid AUX loss: 0.0, valid CMCL loss: 6.3015, valid f1: 70.8597, valid acc: 72.2222
+Epoch 32, test loss: 1.7704, test HGR loss: -0.5339, test SWFC loss: 0.6911, test CE loss: 2.3165, test AUX loss: 0.0, test CMCL loss: 12.9692, test f1: 64.3302, test acc: 66.3218, 
+Epoch 33, train loss: 4.2113, train HGR loss: -1.7008, train SWFC loss: 2.2002, train CE loss: 4.6132, train AUX loss: 0.0, train CMCL loss: 39.8234, train f1: 79.0553, train acc: 79.5206
+Epoch 33, valid loss: 0.7701, valid HGR loss: -0.2912, valid SWFC loss: 0.3864, valid CE loss: 0.9118, valid AUX loss: 0.0, valid CMCL loss: 6.2918, valid f1: 73.1358, valid acc: 73.5632
+Epoch 33, test loss: 1.7617, test HGR loss: -0.5365, test SWFC loss: 0.6896, test CE loss: 2.3013, test AUX loss: 0.0, test CMCL loss: 12.9614, test f1: 64.3978, test acc: 65.2874, 
+Epoch 34, train loss: 4.2208, train HGR loss: -1.5899, train SWFC loss: 2.2557, train CE loss: 4.5635, train AUX loss: 0.0, train CMCL loss: 39.8591, train f1: 79.6533, train acc: 80.0378
+Epoch 34, valid loss: 0.7752, valid HGR loss: -0.2873, valid SWFC loss: 0.3859, valid CE loss: 0.9222, valid AUX loss: 0.0, valid CMCL loss: 6.2834, valid f1: 72.6655, valid acc: 72.7011
+Epoch 34, test loss: 1.7399, test HGR loss: -0.5323, test SWFC loss: 0.6891, test CE loss: 2.2585, test AUX loss: 0.0, test CMCL loss: 12.9402, test f1: 65.341, test acc: 65.8238, 
+Epoch 35, train loss: 4.1273, train HGR loss: -1.6684, train SWFC loss: 2.2112, train CE loss: 4.4306, train AUX loss: 0.0, train CMCL loss: 39.8129, train f1: 79.885, train acc: 80.3362
+Epoch 35, valid loss: 0.776, valid HGR loss: -0.2895, valid SWFC loss: 0.3864, valid CE loss: 0.9233, valid AUX loss: 0.0, valid CMCL loss: 6.2913, valid f1: 72.0192, valid acc: 72.5096
+Epoch 35, test loss: 1.7476, test HGR loss: -0.5384, test SWFC loss: 0.6898, test CE loss: 2.2741, test AUX loss: 0.0, test CMCL loss: 12.9509, test f1: 64.8255, test acc: 65.6705, 
+Epoch 36, train loss: 4.0634, train HGR loss: -1.7569, train SWFC loss: 2.1727, train CE loss: 4.3522, train AUX loss: 0.0, train CMCL loss: 39.7977, train f1: 80.8296, train acc: 81.1816
+Epoch 36, valid loss: 0.7749, valid HGR loss: -0.2941, valid SWFC loss: 0.3869, valid CE loss: 0.9215, valid AUX loss: 0.0, valid CMCL loss: 6.2908, valid f1: 71.7692, valid acc: 72.4138
+Epoch 36, test loss: 1.753, test HGR loss: -0.5491, test SWFC loss: 0.6902, test CE loss: 2.287, test AUX loss: 0.0, test CMCL loss: 12.9451, test f1: 64.8564, test acc: 66.0536, 
+Epoch 37, train loss: 4.1321, train HGR loss: -1.5572, train SWFC loss: 2.2521, train CE loss: 4.3826, train AUX loss: 0.0, train CMCL loss: 39.8544, train f1: 81.3491, train acc: 81.7585
+Epoch 37, valid loss: 0.7699, valid HGR loss: -0.2941, valid SWFC loss: 0.3864, valid CE loss: 0.9124, valid AUX loss: 0.0, valid CMCL loss: 6.2848, valid f1: 72.3755, valid acc: 72.8927
+Epoch 37, test loss: 1.7601, test HGR loss: -0.5444, test SWFC loss: 0.6899, test CE loss: 2.3002, test AUX loss: 0.0, test CMCL loss: 12.9501, test f1: 64.2954, test acc: 65.4406, 
+Epoch 38, train loss: 4.1483, train HGR loss: -1.5114, train SWFC loss: 2.2653, train CE loss: 4.3912, train AUX loss: 0.0, train CMCL loss: 39.9249, train f1: 81.3462, train acc: 81.6889
+Epoch 38, valid loss: 0.7777, valid HGR loss: -0.2924, valid SWFC loss: 0.3862, valid CE loss: 0.9281, valid AUX loss: 0.0, valid CMCL loss: 6.2807, valid f1: 71.3079, valid acc: 71.5517
+Epoch 38, test loss: 1.7677, test HGR loss: -0.5367, test SWFC loss: 0.6894, test CE loss: 2.3145, test AUX loss: 0.0, test CMCL loss: 12.9454, test f1: 64.1922, test acc: 64.9808, 
+Epoch 39, train loss: 4.054, train HGR loss: -1.6539, train SWFC loss: 2.2415, train CE loss: 4.2603, train AUX loss: 0.0, train CMCL loss: 39.754, train f1: 81.9062, train acc: 82.226
+Epoch 39, valid loss: 0.7841, valid HGR loss: -0.2916, valid SWFC loss: 0.3856, valid CE loss: 0.9413, valid AUX loss: 0.0, valid CMCL loss: 6.2801, valid f1: 72.1436, valid acc: 71.9349
+Epoch 39, test loss: 1.7935, test HGR loss: -0.5425, test SWFC loss: 0.689, test CE loss: 2.3683, test AUX loss: 0.0, test CMCL loss: 12.935, test f1: 64.3143, test acc: 64.636, 
+Epoch 40, train loss: 4.0467, train HGR loss: -1.5525, train SWFC loss: 2.2203, train CE loss: 4.2342, train AUX loss: 0.0, train CMCL loss: 39.8935, train f1: 82.0976, train acc: 82.3553
+Epoch 40, valid loss: 0.786, valid HGR loss: -0.2933, valid SWFC loss: 0.3868, valid CE loss: 0.9442, valid AUX loss: 0.0, valid CMCL loss: 6.2854, valid f1: 71.3078, valid acc: 72.2222
+Epoch 40, test loss: 1.8021, test HGR loss: -0.5405, test SWFC loss: 0.6902, test CE loss: 2.3828, test AUX loss: 0.0, test CMCL loss: 12.9568, test f1: 63.7314, test acc: 65.5556, 
+Best test f1: 66.0746 at epoch 14
+              precision    recall  f1-score   support
+
+           0     0.7601    0.8400    0.7980      1256
+           1     0.5593    0.5872    0.5729       281
+           2     0.3529    0.1200    0.1791        50
+           3     0.5547    0.3413    0.4226       208
+           4     0.6556    0.6393    0.6474       402
+           5     0.4000    0.1471    0.2151        68
+           6     0.5342    0.5652    0.5493       345
+
+    accuracy                         0.6739      2610
+   macro avg     0.5453    0.4629    0.4835      2610
+weighted avg     0.6590    0.6739    0.6607      2610
+

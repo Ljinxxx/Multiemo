@@ -1,0 +1,6 @@
+===== IEMOCAP Identity Disentanglement Test =====
+Best test f1: 68.8544 at epoch 20
+
+===== MELD Identity Disentanglement Test =====
+Best test f1: 65.7963 at epoch 17
+

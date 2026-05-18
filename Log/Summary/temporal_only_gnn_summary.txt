@@ -1,0 +1,9 @@
+===== IEMOCAP speaker-temporal GNN =====
+Best test f1: 72.9919 at epoch 84
+
+===== MELD temporal-only GNN alpha=0.02 =====
+Best test f1: 66.0746 at epoch 14
+
+===== MELD temporal-only GNN alpha=0.05 =====
+Best test f1: 66.0545 at epoch 14
+

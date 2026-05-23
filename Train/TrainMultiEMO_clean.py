@@ -8,6 +8,25 @@ sys.path.append('Model')
 sys.path.append('Dataset')
 sys.path.append('Utils')
 
+"""
+Training script for identity-aware cross-task graph MultiEMO.
+
+This script trains the full model for multimodal emotion recognition in
+conversations. The training objective includes:
+
+1. main emotion classification loss;
+2. graph emotion auxiliary loss;
+3. speaker identity classification loss;
+4. adversarial identity loss with GRL;
+5. orthogonal loss between emotion and identity features;
+6. original multimodal representation learning losses.
+
+The best checkpoint is saved for later identity leakage probing.
+"""
+
+
+
+
 from SampleWeightedFocalContrastiveLoss import SampleWeightedFocalContrastiveLoss
 from SoftHGRLoss import SoftHGRLoss
 from IEMOCAPDataset import IEMOCAPDataset

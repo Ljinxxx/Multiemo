@@ -6,6 +6,13 @@ import pandas as pd
 import numpy as np
 
 
+"""
+Dataset loader for IEMOCAP.
+
+This file loads pre-extracted text, audio, visual features, speaker masks,
+utterance masks, and emotion labels. The collate function pads dialogues to
+the same length within a batch.
+"""
 
 
 '''

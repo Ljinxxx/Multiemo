@@ -5,7 +5,12 @@ import pickle
 import pandas as pd
 import numpy as np
 
+"""
+Dataset loader for MELD.
 
+This file loads pre-extracted multimodal utterance features and speaker
+information for dialogue-level emotion recognition.
+"""
 
 
 '''

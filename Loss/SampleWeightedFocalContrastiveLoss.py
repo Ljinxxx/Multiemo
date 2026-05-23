@@ -2,7 +2,13 @@ import torch
 import torch.nn as nn
 from torch.nn.functional import normalize
 
+"""
+Sample-weighted focal contrastive loss.
 
+This loss is inherited from the MultiEMO framework and is used to improve
+representation learning, especially for minority and hard-to-distinguish
+emotion classes.
+"""
 
 
 '''

@@ -1,56 +1,40 @@
-# MultiEMO: An Attention-Based Correlation-Aware Multimodal Fusion Framework for Emotion Recognition in Conversations (ACL 2023)
+# Identity-Aware Cross-Task Graph Framework for Multimodal Emotion Recognition in Conversations
 
-## Overview
-This repository is the Pytorch implementation of ACL 2023 paper ["MultiEMO: An Attention-Based Correlation-Aware Multimodal Fusion Framework for Emotion Recognition in Conversations"](https://aclanthology.org/2023.acl-long.824.pdf). In this work, we propose a novel attention-based correlation-aware multimodal fusion framework named MultiEMO,
-which effectively integrates multimodal cues by capturing cross-modal mapping relationships across textual, audio and visual modalities based on bidirectional multi-head crossattention layers.
+This repository contains the implementation of our identity-aware cross-task graph framework for multimodal emotion recognition in conversations.
 
-## Quick Start
-### Clone the repository
-```
-git clone https://github.com/TaoShi1998/MultiEMO-ACL2023.git
-```
-### Environment setup
-```
-# Environment: Python 3.8 + Torch 2.2.2 + CUDA 11.8
-# Hardware: single RTX 4090 GPU, 256GB RAM
-conda create --name MultiEMOEnv python=3.8
-conda activate MultiEMOEnv
-```
-### Install dependencies
-```
-cd MultiEMO
-pip install -r requirements.txt
+The code is built upon the MultiEMO framework and extends it with graph-based multi-task learning, speaker identity modeling, adversarial identity disentanglement, and identity leakage probing.
 
-# If you need GPU support on RTX 4090, install the CUDA-enabled PyTorch build that matches your system.
-# Example: pip install torch==2.2.2 torchvision==0.17.2 --index-url https://download.pytorch.org/whl/cu118
-```
-### Run the model
-```
-# IEMOCAP Dataset
-bash Train/TrainMultiEMO_IEMOCAP.sh
+## 1. Overview
 
-# MELD Dataset
-bash Train/TrainMultiEMO_MELD.sh
-```
+Multimodal Emotion Recognition in Conversations (MERC) aims to identify the emotion of each utterance in a dialogue using text, audio, and visual information.
 
-## Citation
-If you find our work helpful to your research, please cite our paper as follows.
-```bibtex
-@inproceedings{shi-huang-2023-multiemo,
-    title = "{M}ulti{EMO}: An Attention-Based Correlation-Aware Multimodal Fusion Framework for Emotion Recognition in Conversations",
-    author = "Shi, Tao  and
-      Huang, Shao-Lun",
-    editor = "Rogers, Anna  and
-      Boyd-Graber, Jordan  and
-      Okazaki, Naoaki",
-    booktitle = "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
-    month = jul,
-    year = "2023",
-    address = "Toronto, Canada",
-    publisher = "Association for Computational Linguistics",
-    url = "https://aclanthology.org/2023.acl-long.824",
-    doi = "10.18653/v1/2023.acl-long.824",
-    pages = "14752--14766",
-    abstract = "Emotion Recognition in Conversations (ERC) is an increasingly popular task in the Natural Language Processing community, which seeks to achieve accurate emotion classifications of utterances expressed by speakers during a conversation. Most existing approaches focus on modeling speaker and contextual information based on the textual modality, while the complementarity of multimodal information has not been well leveraged, few current methods have sufficiently captured the complex correlations and mapping relationships across different modalities. Furthermore, existing state-of-the-art ERC models have difficulty classifying minority and semantically similar emotion categories. To address these challenges, we propose a novel attention-based correlation-aware multimodal fusion framework named MultiEMO, which effectively integrates multimodal cues by capturing cross-modal mapping relationships across textual, audio and visual modalities based on bidirectional multi-head cross-attention layers. The difficulty of recognizing minority and semantically hard-to-distinguish emotion classes is alleviated by our proposed Sample-Weighted Focal Contrastive (SWFC) loss. Extensive experiments on two benchmark ERC datasets demonstrate that our MultiEMO framework consistently outperforms existing state-of-the-art approaches in all emotion categories on both datasets, the improvements in minority and semantically similar emotions are especially significant.",
-}
-```
+Existing MERC methods usually focus on context modeling, multimodal fusion, contrastive learning, and graph-based utterance relation modeling. However, speaker identity-related cues may be implicitly encoded into emotion-oriented representations. Such identity cues may help model speaker-specific expression patterns, but may also become shortcuts for emotion prediction.
+
+To address this issue, we propose an identity-aware cross-task graph framework. The model explicitly connects emotion recognition and speaker identity modeling through a graph-based multi-task module, and uses adversarial identity disentanglement to reduce speaker identity leakage in emotion-oriented features.
+
+## 2. Main Components
+
+The repository contains the following main components:
+
+```text
+Dataset/
+  IEMOCAPDataset.py
+  MELDDataset.py
+
+Loss/
+  SampleWeightedFocalContrastiveLoss.py
+  SoftHGRLoss.py
+
+Model/
+  MultiEMO_Model.py
+  MultiAttn.py
+  CrossTaskGNN.py
+  DialogueRNN.py
+  MLP.py
+  Resnet101.py
+  VisExtNet.py
+
+Train/
+  TrainMultiEMO_clean.py
+  ProbeIdentityLeakage_clean.py
+  Run_Disentangle_Probe_24G_clean.sh

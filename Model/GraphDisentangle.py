@@ -3,6 +3,31 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+
+"""
+Graph-based identity disentanglement module.
+
+This file implements the graph-based multi-task module used after the
+MultiEMO backbone. Given utterance-level multimodal representations, the
+module builds graph-enhanced representations and separates them into:
+
+1. emotion-oriented features for emotion recognition;
+2. identity-oriented features for speaker identity modeling;
+3. adversarial identity prediction from emotion features through a
+   Gradient Reversal Layer (GRL).
+
+The goal is to reduce speaker identity leakage in emotion-oriented features
+while preserving an explicit identity branch for speaker-related information.
+"""
+
+
+
+
+# 梯度反转层：
+# 前向传播时保持输入不变；
+# 反向传播时将梯度乘以负系数。
+# 这样可以让 emotion_feature 在训练过程中变得更难预测说话人身份，
+# 从而减少情感表征中的身份信息泄露。
 class GradientReverseFunction(torch.autograd.Function):
     """
     Gradient Reversal Layer.
@@ -62,6 +87,13 @@ class SimpleGraphConv(nn.Module):
         h = self.norm(x + h)
         return h
 
+
+# 图多任务身份解耦模块：
+# 输入为 MultiEMO 得到的话语级融合表征；
+# 首先通过图卷积建模话语之间的关系；
+# 然后分出 emotion_feature 和 identity_feature 两个表征空间；
+# identity_feature 用于正常身份分类；
+# emotion_feature 经过梯度反转层后用于对抗身份分类。
 
 class GraphMultiTaskGNN(nn.Module):
     """
@@ -176,7 +208,11 @@ class GraphMultiTaskGNN(nn.Module):
         reversed_emotion_feature = self.grl(
             emotion_feature
         )
-
+        # 对抗身份预测分支：
+        # adv_identity_logits 由 emotion_feature 经过梯度反转层后得到。
+        # 优化该分支时，身份分类器会学习预测说话人身份，
+        # 但 emotion_feature 接收到的是反向梯度，
+        # 因此会逐渐去除其中可预测的说话人身份信息。
         adv_identity_logits = self.adv_identity_classifier(
             reversed_emotion_feature
         )

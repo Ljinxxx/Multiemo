@@ -8,6 +8,24 @@ import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
 
+"""
+Identity leakage probe.
+
+This script evaluates whether speaker identity information remains in different
+representations. Given a trained checkpoint, it extracts:
+
+1. fc_features: original fused multimodal features;
+2. emotion_features: disentangled emotion-oriented features;
+3. identity_features: identity-oriented features.
+
+For each feature type, a linear probe is trained to predict speaker identity
+and emotion labels. Lower speaker prediction performance on emotion_features
+indicates reduced identity leakage, while higher speaker prediction performance
+on identity_features indicates that the identity branch preserves identity
+information.
+"""
+
+
 PROJECT_ROOT = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__),

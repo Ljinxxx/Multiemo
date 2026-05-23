@@ -1,6 +1,12 @@
 import torch
 import torch.nn as nn
 
+"""
+Soft-HGR loss for multimodal correlation learning.
+
+This loss encourages correlated multimodal representations and is inherited
+from the MultiEMO framework.
+"""
 
 
 

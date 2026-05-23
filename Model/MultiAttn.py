@@ -4,20 +4,14 @@ import torch.nn.functional as F
 
 
 """
-[MODIFIED]
-Masked MultiAttn.
+Masked multi-head cross-modal attention.
 
-Original problem:
-    The previous MultiAttn computes attention over all sequence positions,
-    including padded utterances.
+This module performs bidirectional cross-modal attention among text, audio,
+and visual modalities. An optional attention mask is used to prevent padded
+utterances from contributing to attention computation.
 
-Modification:
-    Add attention_mask to every cross-attention layer.
-
-attention_mask:
-    shape: [batch_size, seq_len]
-    value: 1 means valid utterance
-    value: 0 means padding utterance
+The mask is especially important for dialogue batches with variable sequence
+lengths, where padded utterances should not influence valid utterance features.
 """
 
 

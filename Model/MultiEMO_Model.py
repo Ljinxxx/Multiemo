@@ -5,6 +5,19 @@ from MLP import MLP
 import torch
 import torch.nn as nn
 
+"""
+MultiEMO backbone.
+
+This module encodes text, audio, and visual features for multimodal emotion
+recognition in conversations. It projects modality-specific input features,
+applies contextual encoders, performs cross-modal attention-based fusion, and
+outputs utterance-level fused representations.
+
+The output fc_outputs are further passed to the cross-task graph module for
+emotion recognition, speaker identity modeling, and identity disentanglement.
+"""
+
+
 
 class MultiEMO(nn.Module):
     def __init__(
